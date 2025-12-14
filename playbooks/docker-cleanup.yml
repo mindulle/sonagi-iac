@@ -1,0 +1,71 @@
+---
+- name: Docker Cleanup
+  hosts: all
+  become: yes
+  
+  tasks:
+    - name: Check if Docker is installed
+      command: docker --version
+      register: docker_check
+      ignore_errors: yes
+      changed_when: false
+      
+    - name: Docker cleanup tasks
+      when: docker_check.rc == 0
+      block:
+        - name: Get disk usage before cleanup
+          command: df -h /
+          register: disk_before
+          changed_when: false
+          
+        - name: Remove unused Docker images
+          command: docker image prune -af --filter "until={{ docker_cleanup_days * 24 }}h"
+          register: image_prune
+          
+        - name: Remove unused Docker containers
+          command: docker container prune -f
+          register: container_prune
+          
+        - name: Remove unused Docker volumes
+          command: docker volume prune -f
+          register: volume_prune
+          
+        - name: Remove unused Docker networks
+          command: docker network prune -f
+          register: network_prune
+          
+        - name: Get disk usage after cleanup
+          command: df -h /
+          register: disk_after
+          changed_when: false
+          
+        - name: Display cleanup summary
+          debug:
+            msg: |
+              Images removed: {{ image_prune.stdout }}
+              Containers removed: {{ container_prune.stdout }}
+              Volumes removed: {{ volume_prune.stdout }}
+              Networks removed: {{ network_prune.stdout }}
+              
+        - name: Send Discord notification
+          uri:
+            url: "{{ discord_webhook_url }}"
+            method: POST
+            body_format: json
+            body:
+              content: "🧹 Docker cleanup completed on {{ inventory_hostname }}"
+              embeds:
+                - title: "Docker Cleanup Report"
+                  description: "Cleanup completed successfully"
+                  color: 3447003
+                  fields:
+                    - name: "Host"
+                      value: "{{ inventory_hostname }}"
+                      inline: true
+                    - name: "Status"
+                      value: "✅ Complete"
+                      inline: true
+              timestamp: "{{ ansible_date_time.iso8601 }}"
+            status_code: 204
+          when: discord_webhook_url is defined
+          ignore_errors: yes

@@ -1,0 +1,63 @@
+---
+- name: Log Rotation and Cleanup
+  hosts: all
+  become: yes
+  
+  tasks:
+    - name: Rotate Docker logs
+      shell: |
+        truncate -s 0 $(docker inspect --format='{{.LogPath}}' $(docker ps -aq) 2>/dev/null)
+      ignore_errors: yes
+      
+    - name: Clean old journal logs
+      command: journalctl --vacuum-time=7d
+      register: journal_clean
+      
+    - name: Clean apt cache
+      command: apt-get clean
+      
+    - name: Remove old log files
+      find:
+        paths:
+          - /var/log
+        patterns: '*.log.*,*.gz'
+        age: 7d
+      register: old_logs
+      
+    - name: Delete old log files
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ old_logs.files }}"
+      when: old_logs.files | length > 0
+      
+    - name: Get disk usage
+      shell: df -h / | awk 'NR==2 {print $5}'
+      register: disk_usage
+      changed_when: false
+      
+    - name: Send Discord notification
+      uri:
+        url: "{{ discord_webhook_url }}"
+        method: POST
+        body_format: json
+        body:
+          content: "📝 Log rotation completed on {{ inventory_hostname }}"
+          embeds:
+            - title: "Log Rotation Report"
+              description: "Logs cleaned successfully"
+              color: 10181046
+              fields:
+                - name: "Host"
+                  value: "{{ inventory_hostname }}"
+                  inline: true
+                - name: "Disk Usage"
+                  value: "{{ disk_usage.stdout }}"
+                  inline: true
+                - name: "Files Removed"
+                  value: "{{ old_logs.files | length }}"
+                  inline: true
+              timestamp: "{{ ansible_date_time.iso8601 }}"
+        status_code: 204
+      when: discord_webhook_url is defined
+      ignore_errors: yes

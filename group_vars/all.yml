@@ -1,0 +1,14 @@
+---
+# 전역 변수
+ansible_become: yes
+ansible_become_method: sudo
+
+# 백업 설정
+backup_dir: "/home/ubuntu/backups"
+backup_retention_days: 7
+
+# Docker 설정
+docker_cleanup_days: 7
+
+# 알림 설정
+discord_webhook_url: "YOUR_DISCORD_WEBHOOK_URL"

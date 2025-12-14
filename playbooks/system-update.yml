@@ -1,0 +1,52 @@
+---
+- name: System Update and Upgrade
+  hosts: all
+  become: yes
+  
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      register: apt_update
+      
+    - name: Upgrade all packages
+      apt:
+        upgrade: dist
+        autoremove: yes
+        autoclean: yes
+      register: apt_upgrade
+      
+    - name: Check if reboot is required
+      stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+      
+    - name: Display upgrade summary
+      debug:
+        msg: |
+          Update Status: {{ 'Updated' if apt_upgrade.changed else 'Already up to date' }}
+          Reboot Required: {{ 'Yes' if reboot_required.stat.exists else 'No' }}
+          
+    - name: Send Discord notification
+      uri:
+        url: "{{ discord_webhook_url }}"
+        method: POST
+        body_format: json
+        body:
+          content: "✅ System update completed on {{ inventory_hostname }}"
+          embeds:
+            - title: "System Update Report"
+              description: "Package update completed successfully"
+              color: 5763719
+              fields:
+                - name: "Host"
+                  value: "{{ inventory_hostname }}"
+                  inline: true
+                - name: "Reboot Required"
+                  value: "{{ 'Yes ⚠️' if reboot_required.stat.exists else 'No ✅' }}"
+                  inline: true
+              timestamp: "{{ ansible_date_time.iso8601 }}"
+        status_code: 204
+      when: discord_webhook_url is defined
+      ignore_errors: yes

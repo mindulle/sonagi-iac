@@ -1,0 +1,64 @@
+---
+- name: Security Updates
+  hosts: all
+  become: yes
+  
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        
+    - name: Install unattended-upgrades
+      apt:
+        name: unattended-upgrades
+        state: present
+        
+    - name: Configure automatic security updates
+      copy:
+        dest: /etc/apt/apt.conf.d/50unattended-upgrades
+        content: |
+          Unattended-Upgrade::Allowed-Origins {
+              "${distro_id}:${distro_codename}-security";
+          };
+          Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+          Unattended-Upgrade::MinimalSteps "true";
+          Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+          Unattended-Upgrade::Remove-Unused-Dependencies "true";
+          Unattended-Upgrade::Automatic-Reboot "false";
+          
+    - name: Apply security updates
+      apt:
+        upgrade: safe
+        update_cache: yes
+      register: security_updates
+      
+    - name: Check for security updates
+      shell: apt list --upgradable 2>/dev/null | grep -i security | wc -l
+      register: pending_security
+      changed_when: false
+      
+    - name: Send Discord notification
+      uri:
+        url: "{{ discord_webhook_url }}"
+        method: POST
+        body_format: json
+        body:
+          content: "🔒 Security updates completed on {{ inventory_hostname }}"
+          embeds:
+            - title: "Security Update Report"
+              description: "Security patches applied"
+              color: 15844367
+              fields:
+                - name: "Host"
+                  value: "{{ inventory_hostname }}"
+                  inline: true
+                - name: "Updates Applied"
+                  value: "{{ 'Yes ✅' if security_updates.changed else 'None 🟢' }}"
+                  inline: true
+                - name: "Pending Updates"
+                  value: "{{ pending_security.stdout }}"
+                  inline: true
+              timestamp: "{{ ansible_date_time.iso8601 }}"
+        status_code: 204
+      when: discord_webhook_url is defined
+      ignore_errors: yes

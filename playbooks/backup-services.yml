@@ -1,0 +1,106 @@
+---
+- name: Backup Services
+  hosts: all
+  become: yes
+  
+  vars:
+    timestamp: "{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}"
+    
+  tasks:
+    - name: Create backup directory
+      file:
+        path: "{{ backup_dir }}"
+        state: directory
+        mode: '0755'
+        
+    - name: Backup n8n data
+      when: "'n8n' in group_names"
+      block:
+        - name: Create n8n backup directory
+          file:
+            path: "{{ backup_dir }}/n8n"
+            state: directory
+            
+        - name: Export n8n workflows
+          shell: |
+            docker exec n8n n8n export:workflow --all --output=/tmp/workflows_{{ timestamp }}.json
+            docker cp n8n:/tmp/workflows_{{ timestamp }}.json {{ backup_dir }}/n8n/
+          ignore_errors: yes
+          
+        - name: Backup n8n database
+          shell: |
+            docker exec n8n sqlite3 /home/node/.n8n/database.sqlite ".backup /tmp/database_{{ timestamp }}.sqlite"
+            docker cp n8n:/tmp/database_{{ timestamp }}.sqlite {{ backup_dir }}/n8n/
+          ignore_errors: yes
+          
+    - name: Backup IaC Hub services
+      when: "'iac_hub' in group_names"
+      block:
+        - name: Create IaC Hub backup directory
+          file:
+            path: "{{ backup_dir }}/iac-hub"
+            state: directory
+            
+        - name: Backup Semaphore data
+          shell: |
+            cd /home/ubuntu/iac-hub
+            tar czf {{ backup_dir }}/iac-hub/semaphore_{{ timestamp }}.tar.gz semaphore-data/
+          ignore_errors: yes
+          
+        - name: Backup Atlantis data
+          shell: |
+            cd /home/ubuntu/iac-hub
+            tar czf {{ backup_dir }}/iac-hub/atlantis_{{ timestamp }}.tar.gz atlantis-data/
+          ignore_errors: yes
+          
+        - name: Backup docker-compose config
+          copy:
+            src: /home/ubuntu/iac-hub/docker-compose.yml
+            dest: "{{ backup_dir }}/iac-hub/docker-compose_{{ timestamp }}.yml"
+            remote_src: yes
+          ignore_errors: yes
+          
+    - name: Remove old backups
+      find:
+        paths: "{{ backup_dir }}"
+        age: "{{ backup_retention_days }}d"
+        recurse: yes
+      register: old_backups
+      
+    - name: Delete old backup files
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ old_backups.files }}"
+      when: old_backups.files | length > 0
+      
+    - name: Get backup directory size
+      shell: du -sh {{ backup_dir }} | cut -f1
+      register: backup_size
+      changed_when: false
+      
+    - name: Send Discord notification
+      uri:
+        url: "{{ discord_webhook_url }}"
+        method: POST
+        body_format: json
+        body:
+          content: "💾 Backup completed on {{ inventory_hostname }}"
+          embeds:
+            - title: "Backup Report"
+              description: "All services backed up successfully"
+              color: 3066993
+              fields:
+                - name: "Host"
+                  value: "{{ inventory_hostname }}"
+                  inline: true
+                - name: "Backup Size"
+                  value: "{{ backup_size.stdout }}"
+                  inline: true
+                - name: "Retention"
+                  value: "{{ backup_retention_days }} days"
+                  inline: true
+              timestamp: "{{ ansible_date_time.iso8601 }}"
+        status_code: 204
+      when: discord_webhook_url is defined
+      ignore_errors: yes
