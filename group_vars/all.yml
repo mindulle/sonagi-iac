@@ -11,4 +11,4 @@ backup_retention_days: 7
 docker_cleanup_days: 7
 
 # 알림 설정
-discord_webhook_url: "YOUR_DISCORD_WEBHOOK_URL"
+discord_webhook_url: "https://discord.com/api/webhooks/1076044841445765180/VhiSXkSC_Q9fYKgEoxdGlWWzhwyEJXW7LJTVMzpSNjcI2MrwmRlEYSYzmzPNYQXAxyil"
