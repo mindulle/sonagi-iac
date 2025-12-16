@@ -2,7 +2,11 @@
 - name: Docker Cleanup
   hosts: all
   become: yes
-  
+  vars:
+    docker_cleanup_days: 7
+    backup_dir: "/home/ubuntu/backups"
+    backup_retention_days: 7
+    discord_webhook_url: "https://discord.com/api/webhooks/1076044841445765180/VhiSXkSC_Q9fYKgEoxdGlWWzhwyEJXW7LJTVMzpSNjcI2MrwmRlEYSYzmzPNYQXAxyil"
   tasks:
     - name: Check if Docker is installed
       command: docker --version

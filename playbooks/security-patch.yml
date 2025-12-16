@@ -2,7 +2,9 @@
 - name: Security Updates
   hosts: all
   become: yes
-  
+  vars:
+    discord_webhook_url: "https://discord.com/api/webhooks/1076044841445765180/VhiSXkSC_Q9fYKgEoxdGlWWzhwyEJXW7LJTVMzpSNjcI2MrwmRlEYSYzmzPNYQXAxyil"
+
   tasks:
     - name: Update apt cache
       apt:

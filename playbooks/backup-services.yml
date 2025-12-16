@@ -5,6 +5,7 @@
   
   vars:
     timestamp: "{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}"
+    discord_webhook_url: "https://discord.com/api/webhooks/1076044841445765180/VhiSXkSC_Q9fYKgEoxdGlWWzhwyEJXW7LJTVMzpSNjcI2MrwmRlEYSYzmzPNYQXAxyil"
     
   tasks:
     - name: Create backup directory
