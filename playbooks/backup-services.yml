@@ -1,10 +1,12 @@
----
+  ---
 - name: Backup Services
   hosts: all
   become: yes
   
   vars:
     timestamp: "{{ ansible_date_time.date }}_{{ ansible_date_time.hour }}{{ ansible_date_time.minute }}"
+    backup_dir: "/home/ubuntu/backups"
+    backup_retention_days: 7
     discord_webhook_url: "https://discord.com/api/webhooks/1076044841445765180/VhiSXkSC_Q9fYKgEoxdGlWWzhwyEJXW7LJTVMzpSNjcI2MrwmRlEYSYzmzPNYQXAxyil"
     
   tasks:
