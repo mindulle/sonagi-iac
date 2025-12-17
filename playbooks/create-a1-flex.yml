@@ -12,6 +12,10 @@
     ocpus: 4
     memory_in_gbs: 24
     discord_webhook: "{{ lookup('env', 'DISCORD_WEBHOOK_URL') }}"
+
+  environment:
+    OCI_CONFIG_FILE: /home/semaphore/.oci/config
+    OCI_CLI_PROFILE: DEFAULT
   
   tasks:
     - name: Generate timestamp for instance name
