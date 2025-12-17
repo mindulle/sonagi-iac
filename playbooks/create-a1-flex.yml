@@ -1,7 +1,7 @@
 ---
 - name: Try to create OCI A1.Flex instance
   hosts: localhost
-  gather_facts: no
+  gather_facts: yes
   
   vars:
     compartment_id: "ocid1.compartment.oc1..aaaaaaaaawzq3u3bdxcpfl7akunojtmfmn72ygy4j5wk2tgyvhmg6gtkhjya"
