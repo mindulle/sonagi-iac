@@ -2,7 +2,6 @@
 - name: Try to create OCI A1.Flex instance
   hosts: localhost
   gather_facts: yes
-  
   vars:
     compartment_id: "ocid1.compartment.oc1..aaaaaaaaawzq3u3bdxcpfl7akunojtmfmn72ygy4j5wk2tgyvhmg6gtkhjya"
     availability_domain: "AOBe:AP-CHUNCHEON-1-AD-1"
@@ -11,21 +10,19 @@
     shape: "VM.Standard.A1.Flex"
     ocpus: 4
     memory_in_gbs: 24
+    oci_config_file: "/home/ubuntu/.oci/config"
     discord_webhook: "{{ lookup('env', 'DISCORD_WEBHOOK_URL') }}"
 
-  environment:
-    OCI_CONFIG_FILE: /home/semaphore/.oci/config
-    OCI_CLI_PROFILE: DEFAULT
-  
   tasks:
     - name: Generate timestamp for instance name
       set_fact:
         timestamp: "{{ ansible_date_time.iso8601_basic_short }}"
         instance_name: "a1-flex-auto-{{ ansible_date_time.epoch }}"
-    
+
     - name: Try to create A1.Flex instance
       shell: |
         oci compute instance launch \
+          --config-file {{ oci_config_file }} \
           --compartment-id {{ compartment_id }} \
           --availability-domain "{{ availability_domain }}" \
           --shape {{ shape }} \
@@ -39,12 +36,12 @@
       register: instance_result
       ignore_errors: yes
       changed_when: instance_result.rc == 0
-    
+
     - name: Parse instance info on success
       set_fact:
         instance_info: "{{ instance_result.stdout | from_json }}"
       when: instance_result.rc == 0
-    
+
     - name: Display result
       debug:
         msg: |
@@ -57,7 +54,7 @@
           {% else %}
           ❌ FAILED: {{ instance_result.stderr | default('No capacity available') }}
           {% endif %}
-    
+
     - name: Send Discord notification on success
       uri:
         url: "{{ discord_webhook }}"
@@ -82,11 +79,11 @@
                   value: "{{ timestamp }}"
               timestamp: "{{ ansible_date_time.iso8601 }}"
         status_code: [200, 204]
-      when: 
+      when:
         - instance_result.rc == 0
         - discord_webhook != ""
       ignore_errors: yes
-    
+
     - name: Fail task if creation failed (for retry logic)
       fail:
         msg: "Instance creation failed. Will retry in next run."
