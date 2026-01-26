@@ -11,7 +11,6 @@
     ocpus: 4
     memory_in_gbs: 24
     oci_config_file: "/home/ubuntu/.oci/config"
-    oci_config_profile: "tokyo"
     discord_webhook: "{{ lookup('env', 'DISCORD_WEBHOOK_URL') }}"
 
   tasks:
@@ -22,10 +21,10 @@
 
     - name: Try to create A1.Flex instance
       shell: |
-        oci --profile {{ oci_config_profile }} compute instance launch \
+        oci compute instance launch \
           --config-file {{ oci_config_file }} \
           --compartment-id {{ compartment_id }} \
-          --availability-domain "{{ current_ad }}" \
+          --availability-domain "{{ availability_domain }}" \
           --shape {{ shape }} \
           --shape-config '{"ocpus":{{ ocpus }},"memoryInGBs":{{ memory_in_gbs }}}' \
           --subnet-id {{ subnet_id }} \
