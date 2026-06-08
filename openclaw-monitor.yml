@@ -1,0 +1,43 @@
+---
+- name: Monitor OpenClaw Service and Resources
+  hosts: openclaw_gateways
+  become: yes
+  vars:
+    openclaw_service_name: openclaw
+    memory_limit_mb: 1024  # Threshold for restart (1GB)
+
+  tasks:
+    - name: Check OpenClaw systemd service status
+      ansible.builtin.systemd:
+        name: "{{ openclaw_service_name }}"
+      register: openclaw_status
+
+    - name: Report service status
+      ansible.builtin.debug:
+        msg: "Service {{ openclaw_service_name }} is {{ openclaw_status.status.ActiveState }}"
+
+    - name: Get current memory usage of OpenClaw process
+      ansible.builtin.shell: |
+        ps -C node -o rss=,args= | grep "openclaw" | awk '{print $1/1024}'
+      register: openclaw_memory
+      changed_when: false
+      failed_when: false
+
+    - name: Report memory usage
+      ansible.builtin.debug:
+        msg: "OpenClaw is currently using {{ openclaw_memory.stdout | default('0') | float | round(2) }} MB of RAM"
+      when: openclaw_memory.stdout != ""
+
+    - name: Alert and Restart if memory limit exceeded
+      ansible.builtin.systemd:
+        name: "{{ openclaw_service_name }}"
+        state: restarted
+      when: 
+        - openclaw_memory.stdout != ""
+        - (openclaw_memory.stdout | float) > memory_limit_mb
+      register: restart_result
+
+    - name: Confirm restart
+      ansible.builtin.debug:
+        msg: "⚠️ OpenClaw exceeded {{ memory_limit_mb }}MB and was automatically restarted."
+      when: restart_result is changed
