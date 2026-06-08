@@ -1,0 +1,17 @@
+[Unit]
+Description=OpenClaw Gateway ({{ agent_name | default('Generic Agent') }})
+After=network.target
+
+[Service]
+Type=simple
+User={{ ansible_user }}
+WorkingDirectory={{ ansible_user_dir }}
+Environment="PATH={{ ansible_user_dir }}/.nvm/versions/node/{{ node_version }}/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart={{ ansible_user_dir }}/.nvm/versions/node/{{ node_version }}/bin/openclaw gateway run
+Restart=always
+RestartSec=10
+StandardOutput=append:{{ ansible_user_dir }}/.openclaw/logs/gateway.log
+StandardError=append:{{ ansible_user_dir }}/.openclaw/logs/gateway.log
+
+[Install]
+WantedBy=default.target

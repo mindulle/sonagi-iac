@@ -1,0 +1,30 @@
+{
+  "gateway": {
+    "mode": "local",
+    "auth": {
+      "mode": "token",
+      "token": "{{ bws_gateway_token | default('fallback-token-change-me') }}"
+    },
+    "port": {{ openclaw_port | default(18789) }},
+    "bind": "lan"
+  },
+  "providers": {
+    "google": {
+      "enabled": true,
+      "apiKey": "{{ bws_google_api_key }}"
+    }
+  },
+  "plugins": {
+    "openshell": {
+      "enabled": true,
+      "allow": ["*"]
+    }
+  },
+  "channels": {
+    "discord": {
+      "enabled": true,
+      "token": "{{ bws_discord_bot_token }}",
+      "ownerAllowFrom": ["{{ discord_owner_id }}"]
+    }
+  }
+}
