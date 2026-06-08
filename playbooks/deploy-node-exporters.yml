@@ -1,0 +1,30 @@
+---
+- name: Deploy Prometheus Node Exporter
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install Node Exporter (APT)
+      apt:
+        name: prometheus-node-exporter
+        state: present
+        update_cache: yes
+
+    - name: Ensure Node Exporter is enabled and running
+      systemd:
+        name: prometheus-node-exporter
+        state: started
+        enabled: yes
+
+    - name: Allow Node Exporter port in UFW (if ufw exists)
+      shell: which ufw && ufw allow 9100/tcp || echo "ufw not found"
+      register: ufw_check
+      changed_when: "'allow' in ufw_check.stdout"
+
+    - name: Verify Node Exporter is responding
+      uri:
+        url: http://localhost:9100/metrics
+        return_content: no
+      register: node_exporter_check
+      retries: 3
+      delay: 5
+      until: node_exporter_check.status == 200
