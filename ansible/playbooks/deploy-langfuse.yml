@@ -8,6 +8,7 @@
     db_password: "{{ langfuse_db_password | default('CHANGE_ME_IN_SEMAPHORE') }}"
     nextauth_secret: "{{ langfuse_nextauth_secret | default('CHANGE_ME_IN_SEMAPHORE') }}"
     salt: "{{ langfuse_salt | default('CHANGE_ME_IN_SEMAPHORE') }}"
+    cloudflare_tunnel_token: "{{ cloudflare_tunnel_token | default('CHANGE_ME_IN_SEMAPHORE') }}"
 
   tasks:
     - name: Create Langfuse working directory

@@ -21,5 +21,15 @@ services:
     ports:
       - "5432:5432" # 필요시 외부 접근을 막기 위해 127.0.0.1:5432:5432 로 제한 가능
 
+  # Cloudflare Tunnel 에이전트 (외부에서 안전하게 접속하기 위함)
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel run
+    env_file:
+      - .env
+    depends_on:
+      - langfuse-server
+
 volumes:
   langfuse_db_data:
