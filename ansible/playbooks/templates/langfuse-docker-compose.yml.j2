@@ -2,14 +2,13 @@ version: '3.8'
 
 services:
   langfuse-server:
-    image: ghcr.io/langfuse/langfuse:3 # 안정성을 위해 v3 메이저 버전 고정
+    image: ghcr.io/langfuse/langfuse:2 # 안정적인 v2 사용
     depends_on:
       - db
-    ports:
-      - "3000:3000"
     env_file:
       - .env
-    restart: unless-stopped # 에이전트 자가 치유를 돕는 도커 데몬의 기본 복구 정책
+    restart: unless-stopped
+    # ports 바인딩 생략: Cloudflare Tunnel이 직접 내부망으로 접근합니다.
 
   db:
     image: postgres:15-alpine
@@ -19,13 +18,12 @@ services:
     volumes:
       - langfuse_db_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432" # 필요시 외부 접근을 막기 위해 127.0.0.1:5432:5432 로 제한 가능
+      - "5432:5432"
 
-  # Cloudflare Tunnel 에이전트 (외부에서 안전하게 접속하기 위함)
   cloudflared:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
-    command: tunnel run
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
     env_file:
       - .env
     depends_on:
