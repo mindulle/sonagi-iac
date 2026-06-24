@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  langfuse-server:
+    image: ghcr.io/langfuse/langfuse:3 # 안정성을 위해 v3 메이저 버전 고정
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: unless-stopped # 에이전트 자가 치유를 돕는 도커 데몬의 기본 복구 정책
+
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - langfuse_db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432" # 필요시 외부 접근을 막기 위해 127.0.0.1:5432:5432 로 제한 가능
+
+volumes:
+  langfuse_db_data:
