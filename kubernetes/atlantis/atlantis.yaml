@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: atlantis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: atlantis
+  namespace: atlantis
+spec:
+  type: ClusterIP
+  ports:
+  - name: atlantis
+    port: 80
+    targetPort: 4141
+  selector:
+    app: atlantis
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: atlantis
+  namespace: atlantis
+  labels:
+    app: atlantis
+spec:
+  serviceName: atlantis
+  replicas: 1
+  selector:
+    matchLabels:
+      app: atlantis
+  template:
+    metadata:
+      labels:
+        app: atlantis
+    spec:
+      containers:
+      - name: atlantis
+        image: ghcr.io/runatlantis/atlantis:v0.28.1 # 항상 특정 버전을 고정하여 안정성 확보
+        env:
+        - name: ATLANTIS_REPO_ALLOWLIST
+          value: "github.com/mindulle/sonagi-iac" # 본인의 저장소만 허용
+        - name: ATLANTIS_GH_USER
+          value: "mindulle"
+        - name: ATLANTIS_GH_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: atlantis-vcs
+              key: token
+        - name: ATLANTIS_GH_WEBHOOK_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: atlantis-vcs
+              key: webhook-secret
+        - name: ATLANTIS_PORT
+          value: "4141"
+        - name: ATLANTIS_HIDE_PREV_PLAN_COMMENTS
+          value: "true" # PR이 지저분해지는 것을 방지
+        ports:
+        - name: atlantis
+          containerPort: 4141
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        volumeMounts:
+        - name: atlantis-data
+          mountPath: /atlantis-data
+  volumeClaimTemplates:
+  - metadata:
+      name: atlantis-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 5Gi # State 파일과 Terraform 플러그인 캐싱을 위한 디스크 공간
