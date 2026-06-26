@@ -1,0 +1,66 @@
+services:
+  backend:
+    image: zimengxiong/excalidash-backend:latest
+    container_name: excalidash-backend
+    environment:
+    - DATABASE_URL=file:/app/prisma/dev.db
+    - FRONTEND_URL=${FRONTEND_URL}
+    - PORT=8000
+    - NODE_ENV=production
+    - AUTH_MODE=${AUTH_MODE:-local}
+    - TRUST_PROXY=true
+    - ENFORCE_HTTPS_REDIRECT=false
+    - JWT_SECRET=${JWT_SECRET}
+    - CSRF_SECRET=${CSRF_SECRET}
+    - DISABLE_ONBOARDING_GATE=true
+    volumes:
+    - backend-data:/app/prisma
+    networks:
+    - excalidash-network
+    restart: unless-stopped
+    healthcheck:
+      test:
+      - CMD
+      - node
+      - -e
+      - 'require(''http'').get(''http://127.0.0.1:8000/health'', (r) => process.exit(r.statusCode
+        === 200 ? 0 : 1))'
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  frontend:
+    image: zimengxiong/excalidash-frontend:latest
+    container_name: excalidash-frontend
+    ports:
+    - 6767:80
+    depends_on:
+    - backend
+    volumes:
+    - ./custom-fonts/Virgil.woff2:/usr/share/nginx/html/excalidraw-assets/Virgil.woff2:ro
+    - ./custom-fonts/Excalifont.woff2:/usr/share/nginx/html/assets/Excalifont-Regular-C9eKQy_N.woff2:ro
+    networks:
+    - excalidash-network
+    restart: unless-stopped
+    healthcheck:
+      test:
+      - CMD
+      - wget
+      - --quiet
+      - --tries=1
+      - --spider
+      - http://127.0.0.1:80
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  watchtower:
+    image: containrrr/watchtower
+    container_name: excalidash-updater
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 86400 excalidash-backend excalidash-frontend
+    restart: unless-stopped
+networks:
+  excalidash-network:
+    driver: bridge
+volumes:
+  backend-data: null

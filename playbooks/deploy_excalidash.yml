@@ -1,0 +1,6 @@
+---
+- name: Deploy Excalidash
+  hosts: llmops-instance
+  become: yes
+  roles:
+    - excalidash
