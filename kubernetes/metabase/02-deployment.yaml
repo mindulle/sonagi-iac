@@ -22,9 +22,27 @@ spec:
             - containerPort: 3000
               name: http
           env:
-            - name: MB_DB_FILE
-              value: /metabase-data/metabase.db
+            # 기존 SQLite 설정을 제거하고 Postgres로 대체 (Stateless 화)
+            - name: MB_DB_TYPE
+              value: postgres
+            - name: MB_DB_HOST
+              value: postgres-svc
+            - name: MB_DB_PORT
+              value: "5432"
+            - name: MB_DB_DBNAME
+              value: metabase_app
+            - name: MB_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: metabase-db-secret
+                  key: username
+            - name: MB_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: metabase-db-secret
+                  key: password
           volumeMounts:
+            # 로컬 SQLite DB들 (Eagle Gallery, Notion 등)을 읽기 위해 기존 볼륨 마운트는 유지
             - name: metabase-data
               mountPath: /metabase-data
       volumes:
