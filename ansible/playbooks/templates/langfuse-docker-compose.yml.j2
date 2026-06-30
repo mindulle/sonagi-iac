@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  langfuse-server:
+    image: ghcr.io/langfuse/langfuse:2 # 안정적인 v2 사용
+    depends_on:
+      - db
+    env_file:
+      - .env
+    restart: unless-stopped
+    # ports 바인딩 생략: Cloudflare Tunnel이 직접 내부망으로 접근합니다.
+
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - langfuse_db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${TUNNEL_TOKEN}
+    env_file:
+      - .env
+    depends_on:
+      - langfuse-server
+
+volumes:
+  langfuse_db_data:
