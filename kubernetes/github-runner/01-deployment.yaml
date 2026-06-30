@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github-runner
+  namespace: bi # postgres-svc와 통신하기 위해 동일한 네임스페이스나 적절한 권한 부여
+  labels:
+    app: github-runner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: github-runner
+  template:
+    metadata:
+      labels:
+        app: github-runner
+    spec:
+      containers:
+        - name: runner
+          image: myoung34/github-runner:ubuntu-jammy
+          env:
+            # 연결할 깃허브 저장소 URL (예: https://github.com/mindulle/llm-wiki)
+            - name: REPO_URL
+              value: "https://github.com/mindulle/llm-wiki"
+            # Settings > Actions > Runners > New self-hosted runner 에서 발급받은 토큰
+            - name: RUNNER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: github-runner-secret
+                  key: token
+            - name: RUNNER_NAME
+              value: "k3s-internal-runner"
+            - name: RUNNER_LABELS
+              value: "self-hosted,k3s,internal-db"
+            - name: RUNNER_WORKDIR
+              value: "/tmp/runner/work"
+          volumeMounts:
+            - name: workdir
+              mountPath: /tmp/runner/work
+      volumes:
+        - name: workdir
+          emptyDir: {}
