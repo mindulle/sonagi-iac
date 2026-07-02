@@ -1,0 +1,67 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: metabase-migration-job
+  namespace: bi
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      initContainers:
+        - name: clean-postgres
+          image: postgres:15-alpine
+          env:
+            - name: PGHOST
+              value: postgres-svc
+            - name: PGPORT
+              value: "5432"
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: metabase-db-secret
+                  key: username
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: metabase-db-secret
+                  key: password
+          command:
+            - "sh"
+            - "-c"
+            - "psql -d metabase_app -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;'"
+      containers:
+        - name: migrate-metabase
+          image: metabase/metabase:latest
+          env:
+            - name: MB_DB_TYPE
+              value: postgres
+            - name: MB_DB_HOST
+              value: postgres-svc
+            - name: MB_DB_PORT
+              value: "5432"
+            - name: MB_DB_DBNAME
+              value: metabase_app
+            - name: MB_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: metabase-db-secret
+                  key: username
+            - name: MB_DB_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: metabase-db-secret
+                  key: password
+          command:
+            - "java"
+            - "-jar"
+            - "/app/metabase.jar"
+            - "load-from-h2"
+            - "/metabase-data/metabase.db"
+          volumeMounts:
+            - name: metabase-data
+              mountPath: /metabase-data
+      volumes:
+        - name: metabase-data
+          persistentVolumeClaim:
+            claimName: metabase-data-pvc
