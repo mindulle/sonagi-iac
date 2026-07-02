@@ -41,6 +41,8 @@ spec:
                 secretKeyRef:
                   name: metabase-db-secret
                   key: password
+            - name: MB_SITE_URL
+              value: https://bi.sonagi.space
           volumeMounts:
             # 로컬 SQLite DB들 (Eagle Gallery, Notion 등)을 읽기 위해 기존 볼륨 마운트는 유지
             - name: metabase-data
