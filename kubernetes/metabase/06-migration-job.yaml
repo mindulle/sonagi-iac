@@ -57,7 +57,7 @@ spec:
             - "-jar"
             - "/app/metabase.jar"
             - "load-from-h2"
-            - "/metabase-data/metabase.db"
+            - "/metabase-data/metabase.db/metabase.db"
           volumeMounts:
             - name: metabase-data
               mountPath: /metabase-data
