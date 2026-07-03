@@ -23,7 +23,7 @@ spec:
         fsGroup: 1001
       containers:
         - name: spells-bot
-          image: ghcr.io/mindulle/spells-bot:sha-b40bb3e
+          image: ghcr.io/mindulle/spells-bot:sha-b85aeb1
           imagePullPolicy: Always
           securityContext:
             readOnlyRootFilesystem: true
