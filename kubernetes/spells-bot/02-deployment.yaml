@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: spells-bot
-  namespace: default
   labels:
     app: spells-bot
 spec:
@@ -15,10 +14,18 @@ spec:
       labels:
         app: spells-bot
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
       containers:
         - name: spells-bot
-          image: ghcr.io/mindulle/spells-bot:latest
+          image: ghcr.io/mindulle/spells-bot:main
           imagePullPolicy: Always
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
           resources:
             limits:
               memory: "512Mi"
@@ -31,6 +38,10 @@ spec:
               value: "production"
             - name: LOG_LEVEL
               value: "info"
+            
+            # Use Kubernetes injected CA certificate for internal TLS (avoids disabling strict SSL)
+            - name: NODE_EXTRA_CA_CERTS
+              value: "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
             
             # Discord Config
             - name: DISCORD_TOKEN
@@ -46,7 +57,7 @@ spec:
             
             # MinIO Config
             - name: MINIO_ENDPOINT
-              value: "play.min.io" # 클러스터 내 MinIO 서비스로 변경 권장 (예: minio.default.svc)
+              value: "minio.default.svc"
             - name: MINIO_PORT
               value: "443"
             - name: MINIO_USE_SSL
@@ -69,7 +80,5 @@ spec:
               value: "http://eagle-gallery.default.svc:41595"
             - name: K3S_API_URL
               value: "https://kubernetes.default.svc"
-            - name: K3S_REJECT_UNAUTHORIZED
-              value: "false" # 내부 클러스터 통신용
             - name: N8N_HEALTH_WEBHOOK
               value: "http://n8n.default.svc:5678/healthz"
