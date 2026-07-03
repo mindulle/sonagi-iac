@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spells-bot
+  namespace: default
+  labels:
+    app: spells-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spells-bot
+  template:
+    metadata:
+      labels:
+        app: spells-bot
+    spec:
+      containers:
+        - name: spells-bot
+          image: ghcr.io/mindulle/spells-bot:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: LOG_LEVEL
+              value: "info"
+            
+            # Discord Config
+            - name: DISCORD_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: spells-bot-secret
+                  key: DISCORD_TOKEN
+            - name: DISCORD_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: spells-bot-secret
+                  key: DISCORD_CLIENT_ID
+            
+            # MinIO Config
+            - name: MINIO_ENDPOINT
+              value: "play.min.io" # 클러스터 내 MinIO 서비스로 변경 권장 (예: minio.default.svc)
+            - name: MINIO_PORT
+              value: "443"
+            - name: MINIO_USE_SSL
+              value: "true"
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: spells-bot-secret
+                  key: MINIO_ACCESS_KEY
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: spells-bot-secret
+                  key: MINIO_SECRET_KEY
+            - name: MINIO_DEFAULT_BUCKET
+              value: "sonagi-bucket"
+
+            # Eagle & K3s & n8n
+            - name: EAGLE_API_URL
+              value: "http://eagle-gallery.default.svc:41595"
+            - name: K3S_API_URL
+              value: "https://kubernetes.default.svc"
+            - name: K3S_REJECT_UNAUTHORIZED
+              value: "false" # 내부 클러스터 통신용
+            - name: N8N_HEALTH_WEBHOOK
+              value: "http://n8n.default.svc:5678/healthz"
