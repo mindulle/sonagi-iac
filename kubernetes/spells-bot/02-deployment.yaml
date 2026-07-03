@@ -13,6 +13,8 @@ spec:
     metadata:
       labels:
         app: spells-bot
+      annotations:
+        rollout/trigger: "ebf4318"
     spec:
       securityContext:
         runAsNonRoot: true
