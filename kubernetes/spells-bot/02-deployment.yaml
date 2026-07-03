@@ -47,12 +47,12 @@ spec:
             - name: DISCORD_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: spells-bot-secret
+                  name: spells-bot-credentials
                   key: DISCORD_TOKEN
             - name: DISCORD_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: spells-bot-secret
+                  name: spells-bot-credentials
                   key: DISCORD_CLIENT_ID
             
             # MinIO Config
@@ -65,12 +65,12 @@ spec:
             - name: MINIO_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: spells-bot-secret
+                  name: spells-bot-credentials
                   key: MINIO_ACCESS_KEY
             - name: MINIO_SECRET_KEY
               valueFrom:
                 secretKeyRef:
-                  name: spells-bot-secret
+                  name: spells-bot-credentials
                   key: MINIO_SECRET_KEY
             - name: MINIO_DEFAULT_BUCKET
               value: "sonagi-bucket"
