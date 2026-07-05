@@ -93,3 +93,4 @@ spec:
                 secretKeyRef:
                   name: spells-bot-credentials
                   key: PAPERCLIP_API_TOKEN
+                  optional: true
