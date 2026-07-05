@@ -87,7 +87,7 @@ spec:
             
             # Paperclip API
             - name: PAPERCLIP_API_URL
-              value: "http://paperclip.default.svc:3000/api"
+              value: "http://100.91.9.83:3100/api"
             - name: PAPERCLIP_API_TOKEN
               valueFrom:
                 secretKeyRef:
