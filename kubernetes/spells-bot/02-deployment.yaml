@@ -88,6 +88,8 @@ spec:
             # Paperclip API
             - name: PAPERCLIP_API_URL
               value: "http://100.91.9.83:3100/api"
+            - name: PAPERCLIP_COMPANY_ID
+              value: "3fa0dfa2-9f91-4002-8012-ac598bbb4761"
             - name: PAPERCLIP_API_TOKEN
               valueFrom:
                 secretKeyRef:
