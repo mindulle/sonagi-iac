@@ -84,3 +84,12 @@ spec:
               value: "https://kubernetes.default.svc"
             - name: N8N_HEALTH_WEBHOOK
               value: "http://n8n.default.svc:5678/healthz"
+            
+            # Paperclip API
+            - name: PAPERCLIP_API_URL
+              value: "http://paperclip.default.svc:3000/api"
+            - name: PAPERCLIP_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: spells-bot-credentials
+                  key: PAPERCLIP_API_TOKEN
