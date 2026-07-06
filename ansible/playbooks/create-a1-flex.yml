@@ -1,7 +1,7 @@
 ---
 - name: Try to create OCI A1.Flex instance
   hosts: localhost
-  gather_facts: yes
+  gather_facts: true
   vars:
     compartment_id: "ocid1.compartment.oc1..aaaaaaaaawzq3u3bdxcpfl7akunojtmfmn72ygy4j5wk2tgyvhmg6gtkhjya"
     availability_domain: "AOBe:AP-CHUNCHEON-1-AD-1"
@@ -15,12 +15,12 @@
 
   tasks:
     - name: Generate timestamp for instance name
-      set_fact:
+      ansible.builtin.set_fact:
         timestamp: "{{ ansible_date_time.iso8601_basic_short }}"
         instance_name: "a1-flex-auto-{{ ansible_date_time.epoch }}"
 
     - name: Try to create A1.Flex instance
-      shell: |
+      ansible.builtin.shell: |
         oci compute instance launch \
           --config-file {{ oci_config_file }} \
           --compartment-id {{ compartment_id }} \
@@ -34,16 +34,16 @@
           --wait-for-state RUNNING \
           --max-wait-seconds 300
       register: instance_result
-      ignore_errors: yes
+      ignore_errors: true
       changed_when: instance_result.rc == 0
 
     - name: Parse instance info on success
-      set_fact:
+      ansible.builtin.set_fact:
         instance_info: "{{ instance_result.stdout | from_json }}"
       when: instance_result.rc == 0
 
     - name: Display result
-      debug:
+      ansible.builtin.debug:
         msg: |
           {% if instance_result.rc == 0 %}
           ✅ SUCCESS: A1.Flex instance created!
@@ -56,7 +56,7 @@
           {% endif %}
 
     - name: Send Discord notification on success
-      uri:
+      ansible.builtin.uri:
         url: "{{ discord_webhook }}"
         method: POST
         body_format: json
@@ -82,9 +82,9 @@
       when:
         - instance_result.rc == 0
         - discord_webhook != ""
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Fail task if creation failed (for retry logic)
-      fail:
+      ansible.builtin.fail:
         msg: "Instance creation failed. Will retry in next run."
       when: instance_result.rc != 0

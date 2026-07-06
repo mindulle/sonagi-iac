@@ -7,49 +7,49 @@
     discord_owner_id: "685516064037404683"
     # 실제 실행 시 --extra-vars를 통해 BWS 값을 주입받거나
     # Ansible BWS lookup 플러그인을 사용하도록 설계됨
-  
+
   tasks:
     - name: Ensure .openclaw directories exist
-      file:
+      ansible.builtin.file:
         path: "{{ item }}"
         state: directory
-        mode: '0755'
+        mode: "0755"
       loop:
         - "{{ ansible_user_dir }}/.openclaw"
         - "{{ ansible_user_dir }}/.openclaw/logs"
 
     - name: Check if OpenClaw is installed
-      shell: "source {{ ansible_user_dir }}/.nvm/nvm.sh && openclaw --version"
+      ansible.builtin.shell: "source {{ ansible_user_dir }}/.nvm/nvm.sh && openclaw --version"
       register: openclaw_check
-      ignore_errors: yes
+      ignore_errors: true
       args:
         executable: /bin/bash
 
     - name: Install OpenClaw via NPM if missing
-      shell: "source {{ ansible_user_dir }}/.nvm/nvm.sh && npm install -g openclaw"
+      ansible.builtin.shell: "source {{ ansible_user_dir }}/.nvm/nvm.sh && npm install -g openclaw"
       when: openclaw_check.failed
       args:
         executable: /bin/bash
 
     - name: Deploy OpenClaw Configuration from Template
-      template:
+      ansible.builtin.template:
         src: templates/openclaw.json.j2
         dest: "{{ ansible_user_dir }}/.openclaw/openclaw.json"
-        mode: '0600'
+        mode: "0600"
 
     - name: Deploy Systemd Service File
-      template:
+      ansible.builtin.template:
         src: templates/openclaw.service.j2
         dest: "/etc/systemd/system/openclaw.service"
-        mode: '0644'
-      become: yes
+        mode: "0644"
+      become: true
       register: service_file
 
     - name: Reload Systemd and Restart OpenClaw
-      systemd:
+      ansible.builtin.systemd:
         name: openclaw
         state: restarted
-        enabled: yes
-        daemon_reload: yes
-      become: yes
+        enabled: true
+        daemon_reload: true
+      become: true
       when: service_file.changed

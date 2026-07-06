@@ -1,22 +1,22 @@
 ---
 - name: Security Updates
   hosts: all
-  become: yes
+  become: true
   vars:
     discord_webhook_url: "https://discord.com/api/webhooks/1076044841445765180/VhiSXkSC_Q9fYKgEoxdGlWWzhwyEJXW7LJTVMzpSNjcI2MrwmRlEYSYzmzPNYQXAxyil"
 
   tasks:
     - name: Update apt cache
-      apt:
-        update_cache: yes
-        
+      ansible.builtin.apt:
+        update_cache: true
+
     - name: Install unattended-upgrades
-      apt:
+      ansible.builtin.apt:
         name: unattended-upgrades
         state: present
-        
+
     - name: Configure automatic security updates
-      copy:
+      ansible.builtin.copy:
         dest: /etc/apt/apt.conf.d/50unattended-upgrades
         content: |
           Unattended-Upgrade::Allowed-Origins {
@@ -27,20 +27,20 @@
           Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
           Unattended-Upgrade::Remove-Unused-Dependencies "true";
           Unattended-Upgrade::Automatic-Reboot "false";
-          
+
     - name: Apply security updates
-      apt:
+      ansible.builtin.apt:
         upgrade: safe
-        update_cache: yes
+        update_cache: true
       register: security_updates
-      
+
     - name: Check for security updates
-      shell: apt list --upgradable 2>/dev/null | grep -i security | wc -l
+      ansible.builtin.shell: apt list --upgradable 2>/dev/null | grep -i security | wc -l
       register: pending_security
       changed_when: false
-      
+
     - name: Send Discord notification
-      uri:
+      ansible.builtin.uri:
         url: "{{ discord_webhook_url }}"
         method: POST
         body_format: json
@@ -63,4 +63,4 @@
               timestamp: "{{ ansible_date_time.iso8601 }}"
         status_code: 204
       when: discord_webhook_url is defined
-      ignore_errors: yes
+      ignore_errors: true

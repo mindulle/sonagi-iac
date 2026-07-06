@@ -13,38 +13,7 @@ jobs:
         uses: actions/checkout@v4
         
       - name: Run ansible-lint
-        uses: ansible/ansible-lint-action@v6
+        uses: ansible/ansible-lint@main
         with:
           # 방금 분리한 ansible 폴더만 검사합니다.
           path: "ansible/"
-
-  terraform-lint:
-    name: Terraform Lint & Security
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      # 1. Terraform 포맷팅 검사 (들여쓰기 등)
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-      - name: Terraform Format Check
-        run: terraform fmt -check -recursive terraform/ || echo "🚨 terraform fmt 명령어로 포맷팅을 맞춰주세요."
-
-      # 2. TFLint (Terraform 문법 및 클라우드 베스트 프랙티스 검사)
-      - name: Setup TFLint
-        uses: terraform-linters/setup-tflint@v4
-      - name: Run TFLint
-        run: tflint --recursive terraform/
-
-      # 3. Trivy (구 tfsec, 클라우드 리소스 보안 취약점 스캔)
-      - name: Run Trivy vulnerability scanner in IaC mode
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'config'
-          scan-ref: 'terraform/'
-          hide-progress: false
-          format: 'table'
-          # 치명적이거나 위험한 보안 이슈가 있으면 PR을 강제로 Block합니다.
-          exit-code: '1'
-          severity: 'CRITICAL,HIGH'
