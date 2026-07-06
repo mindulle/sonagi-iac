@@ -20,6 +20,7 @@ spec:
         - name: piston
           image: ghcr.io/mindulle/piston:latest
           imagePullPolicy: Always
+          command: ["su", "--", "piston", "-c", "node /piston_api/src"]
           ports:
             - containerPort: 2000
           securityContext:
