@@ -16,26 +16,9 @@ spec:
     spec:
       containers:
         - name: piston
-          image: ghcr.io/engineer-man/piston:latest
+          image: docker.io/mindulle/piston:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 2000
           securityContext:
             privileged: true
-          volumeMounts:
-            - name: piston-packages
-              mountPath: /piston/packages
-      volumes:
-        - name: piston-packages
-          persistentVolumeClaim:
-            claimName: piston-packages-pvc
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: piston-packages-pvc
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 5Gi
