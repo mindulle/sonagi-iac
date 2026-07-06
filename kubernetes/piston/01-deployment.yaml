@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: piston
-          image: docker.io/mindulle/piston:latest
+          image: ghcr.io/mindulle/piston:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 2000
