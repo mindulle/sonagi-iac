@@ -27,6 +27,7 @@ run();' > /tmp/install.js
 RUN mkdir -p /piston && chown -R piston:piston /piston
 
 USER piston
+CMD ["node", "/piston_api/src/index.js"]
 RUN node /piston_api/src/index.js & \
     PID=$! && \
     node /tmp/install.js && \
