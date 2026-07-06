@@ -1,9 +1,9 @@
+---
 name: Infrastructure Lint & Security Scan
 
 on:
   pull_request:
-    branches: [ "main" ]
-
+    branches: ["main"]
 jobs:
   ansible-lint:
     name: Ansible Lint
@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-        
+
       - name: Run ansible-lint
         uses: ansible/ansible-lint@main
         with:

@@ -1,3 +1,4 @@
+---
 version: 3
 automerge: false
 parallel_plan: true
@@ -5,10 +6,10 @@ parallel_apply: true
 
 # Terraform 프로젝트가 위치한 디렉토리들을 정의합니다.
 projects:
-- name: global-infra
-  dir: terraform/global
-  workspace: default
-  terraform_version: v1.8.4
-  autoplan:
-    when_modified: ["*.tf", "*.tfvars"]
-    enabled: true
+  - name: global-infra
+    dir: terraform/global
+    workspace: default
+    terraform_version: v1.8.4
+    autoplan:
+      when_modified: ["*.tf", "*.tfvars"]
+      enabled: true

@@ -14,29 +14,12 @@ spec:
       labels:
         app: piston
     spec:
-      initContainers:
-        - name: install-packages
-          image: ghcr.io/engineer-man/piston:latest
-          command: ["/bin/sh", "-c"]
-          # Piston 구동에 필요한 기본 언어들을 초기화 시 설치합니다.
-          args:
-            - |
-              if [ ! -d "/piston/packages/python" ]; then
-                echo "Installing languages..."
-                cli install python javascript typescript c++
-              else
-                echo "Languages already installed."
-              fi
-          volumeMounts:
-            - name: piston-packages
-              mountPath: /piston/packages
       containers:
         - name: piston
           image: ghcr.io/engineer-man/piston:latest
           ports:
             - containerPort: 2000
           securityContext:
-            # Piston(Isolate) 내부 감옥(chroot) 생성을 위해 특권 모드 필요
             privileged: true
           volumeMounts:
             - name: piston-packages

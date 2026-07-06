@@ -1,9 +1,9 @@
+---
 name: "AI PR Reviewer (Phase 1: Gemini, Phase 2: Local LLM)"
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-
 permissions:
   contents: read
   pull-requests: write
