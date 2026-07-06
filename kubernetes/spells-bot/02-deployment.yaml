@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -40,11 +41,11 @@ spec:
               value: "production"
             - name: LOG_LEVEL
               value: "info"
-            
+
             # Use Kubernetes injected CA certificate for internal TLS (avoids disabling strict SSL)
             - name: NODE_EXTRA_CA_CERTS
               value: "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
-            
+
             # Discord Config
             - name: DISCORD_TOKEN
               valueFrom:
@@ -56,7 +57,7 @@ spec:
                 secretKeyRef:
                   name: spells-bot-credentials
                   key: DISCORD_CLIENT_ID
-            
+
             # MinIO Config
             - name: MINIO_ENDPOINT
               value: "minio.default.svc"
@@ -84,7 +85,7 @@ spec:
               value: "https://kubernetes.default.svc"
             - name: N8N_HEALTH_WEBHOOK
               value: "http://n8n.default.svc:5678/healthz"
-            
+
             # Paperclip API
             - name: PAPERCLIP_API_URL
               value: "http://100.91.9.83:3100/api"

@@ -1,45 +1,45 @@
 ---
 - name: Log Rotation and Cleanup
   hosts: all
-  become: yes
+  become: true
   vars:
     discord_webhook_url: "https://discord.com/api/webhooks/1076044841445765180/VhiSXkSC_Q9fYKgEoxdGlWWzhwyEJXW7LJTVMzpSNjcI2MrwmRlEYSYzmzPNYQXAxyil"
 
   tasks:
     - name: Rotate Docker logs
-      shell: |
+      ansible.builtin.shell: |
         truncate -s 0 $(docker inspect --format='{{.LogPath}}' $(docker ps -aq) 2>/dev/null)
-      ignore_errors: yes
-      
+      ignore_errors: true
+
     - name: Clean old journal logs
-      command: journalctl --vacuum-time=7d
+      ansible.builtin.command: journalctl --vacuum-time=7d
       register: journal_clean
-      
+
     - name: Clean apt cache
-      command: apt-get clean
-      
+      ansible.builtin.command: apt-get clean
+
     - name: Remove old log files
-      find:
+      ansible.builtin.find:
         paths:
           - /var/log
-        patterns: '*.log.*,*.gz'
+        patterns: "*.log.*,*.gz"
         age: 7d
       register: old_logs
-      
+
     - name: Delete old log files
-      file:
+      ansible.builtin.file:
         path: "{{ item.path }}"
         state: absent
       loop: "{{ old_logs.files }}"
       when: old_logs.files | length > 0
-      
+
     - name: Get disk usage
-      shell: df -h / | awk 'NR==2 {print $5}'
+      ansible.builtin.shell: df -h / | awk 'NR==2 {print $5}'
       register: disk_usage
       changed_when: false
-      
+
     - name: Send Discord notification
-      uri:
+      ansible.builtin.uri:
         url: "{{ discord_webhook_url }}"
         method: POST
         body_format: json
@@ -62,4 +62,4 @@
               timestamp: "{{ ansible_date_time.iso8601 }}"
         status_code: 204
       when: discord_webhook_url is defined
-      ignore_errors: yes
+      ignore_errors: true

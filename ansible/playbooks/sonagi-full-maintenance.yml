@@ -1,35 +1,34 @@
 ---
 - name: Sonagi Comprehensive Infrastructure Maintenance
   hosts: all
-  become: yes
+  become: true
   vars:
     # Use the internal-notifications webhook confirmed earlier
     discord_webhook_url: "https://discord.com/api/webhooks/1484329239795859587/ZSbwFaCWqUpHcNEY1hCwUpfXxbEw3ml4BcYpSC_Ds4hVUdSkErAjbgTowS4GjbXnk8iz"
     report_status: "Healthy ✅"
     report_color: 5763719 # Green
     issues_found: []
-
   tasks:
     # --- [ Tier 1: Common System Checks ] ---
     - name: Check Disk Usage
-      shell: df -h / | awk 'NR==2 {print $5}' | sed 's/%//'
+      ansible.builtin.shell: df -h / | awk 'NR==2 {print $5}' | sed 's/%//'
       register: disk_usage
       changed_when: false
 
     - name: Record Disk Issue
-      set_fact:
+      ansible.builtin.set_fact:
         issues_found: "{{ issues_found + ['⚠️ High Disk Usage: ' + disk_usage.stdout + '%'] }}"
         report_status: "Warning ⚠️"
         report_color: 16776960 # Yellow
       when: disk_usage.stdout|int > 85
 
     - name: Check Memory Usage
-      shell: free | grep Mem | awk '{print int($3/$2 * 100)}'
+      ansible.builtin.shell: free | grep Mem | awk '{print int($3/$2 * 100)}'
       register: mem_usage
       changed_when: false
 
     - name: Record Memory Issue
-      set_fact:
+      ansible.builtin.set_fact:
         issues_found: "{{ issues_found + ['⚠️ High Memory Usage: ' + mem_usage.stdout + '%'] }}"
         report_status: "Warning ⚠️"
         report_color: 16776960
@@ -39,14 +38,14 @@
 
     # GPU Check for Workers
     - name: Check NVIDIA GPU Status (Workers)
-      shell: nvidia-smi --query-gpu=temperature.gpu,utilization.gpu,memory.used --format=csv,noheader,nounits
+      ansible.builtin.command: nvidia-smi --query-gpu=temperature.gpu,utilization.gpu,memory.used --format=csv,noheader,nounits
       register: gpu_status
       when: "'workers' in group_names"
-      ignore_errors: yes
+      ignore_errors: true
       changed_when: false
 
     - name: Record GPU Issue
-      set_fact:
+      ansible.builtin.set_fact:
         issues_found: "{{ issues_found + ['❌ GPU Error or High Temp'] }}"
         report_status: "Critical 🚨"
         report_color: 15158332 # Red
@@ -54,14 +53,14 @@
 
     # Syncthing Check for Wiki Server
     - name: Check Syncthing Status (Wiki)
-      systemd:
+      ansible.builtin.systemd:
         name: syncthing@ubuntu
       register: syncthing_status
       when: "'openclaw_gateways' in group_names"
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Record Syncthing Issue
-      set_fact:
+      ansible.builtin.set_fact:
         issues_found: "{{ issues_found + ['❌ Syncthing is not running'] }}"
         report_status: "Critical 🚨"
         report_color: 15158332
@@ -69,16 +68,16 @@
 
     # Paperclip/API Check for AI Core
     - name: Check Paperclip API Health (AI Core)
-      uri:
+      ansible.builtin.uri:
         url: "http://localhost:3100/api/health"
         status_code: 200
       register: paperclip_health
       when: "'ai_core' in group_names"
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Record Paperclip 403/Error
-      set_fact:
-        issues_found: "{{ issues_found + ['❌ Paperclip API: ' + paperclip_health.status|string] }}"
+      ansible.builtin.set_fact:
+        issues_found: "{{ issues_found + ['❌ Paperclip API: ' + paperclip_health.status | string] }}"
         report_status: "Critical 🚨"
         report_color: 15158332
       when: "'ai_core' in group_names and paperclip_health.status != 200"
@@ -86,12 +85,12 @@
     # --- [ Tier 3: Reporting ] ---
 
     - name: Compile Final Report
-      set_fact:
+      ansible.builtin.set_fact:
         final_description: >
-          {{ 'System is operational.' if issues_found|length == 0 else issues_found|join('\n') }}
+          {{ 'System is operational.' if issues_found | length == 0 else issues_found | join('\n') }}
 
     - name: Send Discord Status Update
-      uri:
+      ansible.builtin.uri:
         url: "{{ discord_webhook_url }}"
         method: POST
         body_format: json
@@ -114,4 +113,4 @@
                 text: "Foundation Layer Auto-Check"
               timestamp: "{{ ansible_date_time.iso8601 }}"
         status_code: 204
-      ignore_errors: yes
+      ignore_errors: true

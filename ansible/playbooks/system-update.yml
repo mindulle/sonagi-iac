@@ -1,36 +1,36 @@
 ---
 - name: System Update and Upgrade
   hosts: all
-  become: yes
+  become: true
   vars:
     discord_webhook_url: "https://discord.com/api/webhooks/1076044841445765180/VhiSXkSC_Q9fYKgEoxdGlWWzhwyEJXW7LJTVMzpSNjcI2MrwmRlEYSYzmzPNYQXAxyil"
   tasks:
     - name: Update apt cache
-      apt:
-        update_cache: yes
+      ansible.builtin.apt:
+        update_cache: true
         cache_valid_time: 3600
       register: apt_update
-      
+
     - name: Upgrade all packages
-      apt:
+      ansible.builtin.apt:
         upgrade: dist
-        autoremove: yes
-        autoclean: yes
+        autoremove: true
+        autoclean: true
       register: apt_upgrade
-      
+
     - name: Check if reboot is required
-      stat:
+      ansible.builtin.stat:
         path: /var/run/reboot-required
       register: reboot_required
-      
+
     - name: Display upgrade summary
-      debug:
+      ansible.builtin.debug:
         msg: |
           Update Status: {{ 'Updated' if apt_upgrade.changed else 'Already up to date' }}
           Reboot Required: {{ 'Yes' if reboot_required.stat.exists else 'No' }}
-          
+
     - name: Send Discord notification
-      uri:
+      ansible.builtin.uri:
         url: "{{ discord_webhook_url }}"
         method: POST
         body_format: json
@@ -50,4 +50,4 @@
               timestamp: "{{ ansible_date_time.iso8601 }}"
         status_code: 204
       when: discord_webhook_url is defined
-      ignore_errors: yes
+      ignore_errors: true

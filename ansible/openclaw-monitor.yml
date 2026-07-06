@@ -1,10 +1,10 @@
 ---
 - name: Monitor OpenClaw Service and Resources
   hosts: openclaw_gateways
-  become: yes
+  become: true
   vars:
     openclaw_service_name: openclaw
-    memory_limit_mb: 1024  # Threshold for restart (1GB)
+    memory_limit_mb: 1024 # Threshold for restart (1GB)
 
   tasks:
     - name: Check OpenClaw systemd service status
@@ -32,7 +32,7 @@
       ansible.builtin.systemd:
         name: "{{ openclaw_service_name }}"
         state: restarted
-      when: 
+      when:
         - openclaw_memory.stdout != ""
         - (openclaw_memory.stdout | float) > memory_limit_mb
       register: restart_result

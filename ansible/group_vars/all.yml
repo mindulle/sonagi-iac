@@ -1,6 +1,6 @@
 ---
 # 전역 변수
-ansible_become: yes
+ansible_become: true
 ansible_become_method: sudo
 
 # 백업 설정

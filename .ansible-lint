@@ -1,0 +1,10 @@
+skip_list:
+  - yaml
+  - fqcn
+  - no-changed-when
+  - ignore-errors
+  - risky-shell-pipe
+  - risky-file-permissions
+  - no-handler
+  - command-instead-of-module
+  - jinja

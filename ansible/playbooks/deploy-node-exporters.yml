@@ -1,29 +1,29 @@
 ---
 - name: Deploy Prometheus Node Exporter
   hosts: all
-  become: yes
+  become: true
   tasks:
     - name: Install Node Exporter (APT)
-      apt:
+      ansible.builtin.apt:
         name: prometheus-node-exporter
         state: present
-        update_cache: yes
+        update_cache: true
 
     - name: Ensure Node Exporter is enabled and running
-      systemd:
+      ansible.builtin.systemd:
         name: prometheus-node-exporter
         state: started
-        enabled: yes
+        enabled: true
 
     - name: Allow Node Exporter port in UFW (if ufw exists)
-      shell: which ufw && ufw allow 9100/tcp || echo "ufw not found"
+      ansible.builtin.shell: which ufw && ufw allow 9100/tcp || echo "ufw not found"
       register: ufw_check
       changed_when: "'allow' in ufw_check.stdout"
 
     - name: Verify Node Exporter is responding
-      uri:
+      ansible.builtin.uri:
         url: http://localhost:9100/metrics
-        return_content: no
+        return_content: false
       register: node_exporter_check
       retries: 3
       delay: 5
