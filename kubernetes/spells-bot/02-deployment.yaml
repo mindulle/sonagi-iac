@@ -99,3 +99,13 @@ spec:
                   name: spells-bot-credentials
                   key: PAPERCLIP_API_TOKEN
                   optional: true
+
+            # Notion API
+            - name: NOTION_SCHEDULER_DATA_SOURCE_ID
+              value: "38a4abe3-a8af-8156-bd94-000b3c7c5677"
+            - name: NOTION_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: spells-bot-credentials
+                  key: NOTION_API_KEY
+                  optional: true
