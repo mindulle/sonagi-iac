@@ -3,6 +3,7 @@ import os
 import json
 import time
 import mimetypes
+import threading
 from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
@@ -22,9 +23,12 @@ DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
 
 # Minio 정보
 MINIO_ENDPOINT = os.environ.get("MINIO_ENDPOINT", "https://cdn.sonagi.space")
-MINIO_ACCESS_KEY = os.environ.get("MINIO_ACCESS_KEY", "admin")
-MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY", "anki123456")
+MINIO_ACCESS_KEY = os.environ.get("MINIO_ACCESS_KEY")
+MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY")
 BUCKET_NAME = os.environ.get("MINIO_BUCKET_NAME", "assets")
+
+if not MINIO_ACCESS_KEY or not MINIO_SECRET_KEY:
+    raise ValueError("MINIO_ACCESS_KEY and MINIO_SECRET_KEY environment variables must be set.")
 
 ROUTING_MAP = {
     "academic": "academic",
@@ -46,8 +50,8 @@ def ensure_bucket_exists():
     try:
         s3_client.head_bucket(Bucket=BUCKET_NAME)
     except ClientError as e:
-        error_code = e.response['Error']['Code']
-        if error_code == '404':
+        status_code = e.response.get('ResponseMetadata', {}).get('HTTPStatusCode')
+        if status_code == 404:
             print(f"[Minio] '{BUCKET_NAME}' 버킷이 없습니다. 새로 생성합니다...", flush=True)
             s3_client.create_bucket(Bucket=BUCKET_NAME)
             
@@ -81,6 +85,7 @@ def save_state(state):
         json.dump(state, f)
 
 processed_assets = load_state()
+state_lock = threading.Lock()
 
 # --- 실제 S3 업로드 로직 ---
 def real_minio_upload(local_file, cdn_path):
@@ -144,42 +149,49 @@ class EagleEventHandler(FileSystemEventHandler):
             tags = data.get("tags", [])
             asset_id = data.get("id")
             
-            if TARGET_TAG in tags and asset_id not in processed_assets:
-                asset_name = data.get("name")
-                asset_ext = data.get("ext")
+            with state_lock:
+                if asset_id in processed_assets or TARGET_TAG not in tags:
+                    return
+                processed_assets[asset_id] = "PENDING"
                 
-                parent_dir = Path(json_path).parent
-                image_file = parent_dir / f"{asset_name}.{asset_ext}"
-                
-                # 이미지 파일이 실제로 존재하는지 확인
-                if not image_file.exists():
-                    # 빈 파일을 만들어서라도 테스트 통과시킴
-                    image_file.touch()
-                
-                category = DEFAULT_CATEGORY
-                for tag in tags:
-                    if tag in ROUTING_MAP:
-                        category = ROUTING_MAP[tag]
-                        break
-                        
-                cdn_path = f"{category}/{asset_id}.{asset_ext}"
-                
-                print("\n[🎯 TARGET DETECTED]", flush=True)
-                print(f"- Asset ID: {asset_id} (Tags: {tags})", flush=True)
-                
-                # 실제 업로드 수행
-                final_url = real_minio_upload(image_file, cdn_path)
-                
-                print(f"- ✅ Upload Complete! URL: {final_url}", flush=True)
-                
-                # 디스코드 알림 발송
-                send_discord_notification(asset_id, category, final_url)
-                
+            asset_name = data.get("name")
+            asset_ext = data.get("ext")
+            
+            parent_dir = Path(json_path).parent
+            image_file = parent_dir / f"{asset_name}.{asset_ext}"
+            
+            # 이미지 파일이 실제로 존재하는지 확인
+            if not image_file.exists():
+                print(f"[Error] Image file not found: {image_file}", flush=True)
+                with state_lock:
+                    processed_assets.pop(asset_id, None)
+                return
+            
+            category = DEFAULT_CATEGORY
+            for tag in tags:
+                if tag in ROUTING_MAP:
+                    category = ROUTING_MAP[tag]
+                    break
+                    
+            cdn_path = f"{category}/{asset_id}.{asset_ext}"
+            
+            print("\n[🎯 TARGET DETECTED]", flush=True)
+            print(f"- Asset ID: {asset_id} (Tags: {tags})", flush=True)
+            
+            # 실제 업로드 수행
+            final_url = real_minio_upload(image_file, cdn_path)
+            
+            print(f"- ✅ Upload Complete! URL: {final_url}", flush=True)
+            
+            # 디스코드 알림 발송
+            send_discord_notification(asset_id, category, final_url)
+            
+            with state_lock:
                 processed_assets[asset_id] = final_url
                 save_state(processed_assets)
                 
-        except json.JSONDecodeError:
-            pass
+        except json.JSONDecodeError as e:
+            print(f"[Warning] JSON decode error (file might still be writing): {e}", flush=True)
         except Exception as e:
             print(f"[Error] reading {json_path}: {e}", flush=True)
 
