@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  bot:
+    build: 
+      context: ./bot
+      dockerfile: Dockerfile
+    container_name: sonagi-intelligence-bot
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./db:/app/db
+    # 로컬 시간대에 맞추기 위해 TZ 설정
+    environment:
+      - TZ=Asia/Seoul

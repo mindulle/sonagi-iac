@@ -1,0 +1,34 @@
+---
+- name: Ensure intelligence-bot directory exists
+  ansible.builtin.file:
+    path: /opt/sonagi-intelligence
+    state: directory
+    mode: '0755'
+
+- name: Copy bot source code
+  ansible.builtin.copy:
+    src: bot/
+    dest: /opt/sonagi-intelligence/bot/
+    mode: '0755'
+
+- name: Template docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: /opt/sonagi-intelligence/docker-compose.yml
+
+- name: Template .env file (ensure user filled group_vars)
+  ansible.builtin.template:
+    src: env.j2
+    dest: /opt/sonagi-intelligence/.env
+
+- name: Ensure intelligence DB directory exists
+  ansible.builtin.file:
+    path: /opt/sonagi-intelligence/db
+    state: directory
+    mode: '0755'
+
+- name: Start Intelligence Bot via Docker Compose
+  community.docker.docker_compose:
+    project_src: /opt/sonagi-intelligence
+    state: present
+    recreate: always
