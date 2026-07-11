@@ -1,0 +1,37 @@
+---
+# 배포 대상 폴더 생성
+- name: Ensure target directory exists
+  ansible.builtin.file:
+    path: /opt/eagle-minio-bridge
+    state: directory
+    mode: '0755'
+
+# 파이썬 스크립트 복사
+- name: Copy Python bridge script
+  ansible.builtin.copy:
+    src: bridge.py
+    dest: /opt/eagle-minio-bridge/bridge.py
+    mode: '0755'
+
+# 파이썬 의존성 패키지 설치
+- name: Install required python packages
+  ansible.builtin.pip:
+    name: 
+      - watchdog
+      - boto3
+      - requests
+    executable: pip3
+
+# 백그라운드 데몬 서비스 등록
+- name: Configure systemd service
+  ansible.builtin.template:
+    src: eagle-bridge.service.j2
+    dest: /etc/systemd/system/eagle-bridge.service
+  notify: restart eagle-bridge
+
+- name: Enable and start eagle-bridge service
+  ansible.builtin.systemd:
+    name: eagle-bridge
+    enabled: yes
+    state: started
+    daemon_reload: yes
