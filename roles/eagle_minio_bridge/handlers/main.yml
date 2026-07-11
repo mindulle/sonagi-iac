@@ -1,5 +1,5 @@
 ---
-- name: restart eagle-bridge
+- name: Restart eagle-bridge
   ansible.builtin.systemd:
     name: eagle-bridge
     state: restarted
