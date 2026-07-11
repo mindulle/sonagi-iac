@@ -1,0 +1,6 @@
+---
+- name: Restart eagle-bridge
+  ansible.builtin.systemd:
+    name: eagle-bridge
+    state: restarted
+    daemon_reload: yes

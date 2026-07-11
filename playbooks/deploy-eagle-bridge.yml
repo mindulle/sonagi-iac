@@ -1,0 +1,6 @@
+---
+- name: Deploy Eagle to Minio Sync Bridge
+  hosts: all
+  become: yes # 관리자 권한(sudo) 필요
+  roles:
+    - eagle_minio_bridge
