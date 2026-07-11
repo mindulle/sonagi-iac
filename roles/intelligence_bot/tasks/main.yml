@@ -28,7 +28,7 @@
     mode: '0755'
 
 - name: Start Intelligence Bot via Docker Compose
-  community.docker.docker_compose:
+  community.docker.docker_compose_v2:
     project_src: /opt/sonagi-intelligence
     state: present
     recreate: always
