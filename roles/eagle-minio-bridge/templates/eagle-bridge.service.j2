@@ -7,8 +7,9 @@ Type=simple
 User=root
 WorkingDirectory=/opt/eagle-minio-bridge
 
-# Semaphore에서 주입받을 보안 환경 변수
+# Semaphore에서 주입받을 보안 환경 변수 및 경로
 Environment="DISCORD_WEBHOOK_URL={{ discord_webhook_url | default('') }}"
+Environment="EAGLE_LIBRARY_PATH={{ eagle_library_path | default('/data/eagle.library/images') }}"
 
 ExecStart=/usr/bin/python3 /opt/eagle-minio-bridge/bridge.py
 Restart=always

@@ -14,7 +14,7 @@ from botocore.exceptions import ClientError
 
 # --- 설정 (Configuration) ---
 TARGET_TAG = "deploy"
-EAGLE_LIBRARY_PATH = "Mock.library/images"
+EAGLE_LIBRARY_PATH = os.environ.get("EAGLE_LIBRARY_PATH", "/data/eagle.library/images")
 STATE_FILE = "bridge_state.json"
 
 # Discord 알림 설정 (웹훅 URL)
