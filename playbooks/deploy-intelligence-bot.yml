@@ -1,0 +1,6 @@
+---
+- name: Deploy Keyword Intelligence Bot
+  hosts: mindullemonitor
+  become: yes
+  roles:
+    - intelligence_bot
