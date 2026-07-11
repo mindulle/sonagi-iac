@@ -21,10 +21,10 @@ STATE_FILE = "bridge_state.json"
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL", "")
 
 # Minio 정보
-MINIO_ENDPOINT = "https://cdn.sonagi.space"
-MINIO_ACCESS_KEY = "admin"
-MINIO_SECRET_KEY = "anki123456"
-BUCKET_NAME = "assets"
+MINIO_ENDPOINT = os.environ.get("MINIO_ENDPOINT", "https://cdn.sonagi.space")
+MINIO_ACCESS_KEY = os.environ.get("MINIO_ACCESS_KEY", "admin")
+MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY", "anki123456")
+BUCKET_NAME = os.environ.get("MINIO_BUCKET_NAME", "assets")
 
 ROUTING_MAP = {
     "academic": "academic",

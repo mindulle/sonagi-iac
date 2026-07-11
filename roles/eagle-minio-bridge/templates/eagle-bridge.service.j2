@@ -10,6 +10,10 @@ WorkingDirectory=/opt/eagle-minio-bridge
 # Semaphore에서 주입받을 보안 환경 변수 및 경로
 Environment="DISCORD_WEBHOOK_URL={{ discord_webhook_url | default('') }}"
 Environment="EAGLE_LIBRARY_PATH={{ eagle_library_path | default('/data/eagle.library/images') }}"
+Environment="MINIO_ENDPOINT={{ minio_endpoint | default('https://cdn.sonagi.space') }}"
+Environment="MINIO_ACCESS_KEY={{ minio_access_key | default('admin') }}"
+Environment="MINIO_SECRET_KEY={{ minio_secret_key | default('anki123456') }}"
+Environment="MINIO_BUCKET_NAME={{ minio_bucket_name | default('assets') }}"
 
 ExecStart=/usr/bin/python3 /opt/eagle-minio-bridge/bridge.py
 Restart=always
