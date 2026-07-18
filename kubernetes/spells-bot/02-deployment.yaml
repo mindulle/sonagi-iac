@@ -85,6 +85,16 @@ spec:
               value: "https://kubernetes.default.svc"
             - name: N8N_HEALTH_WEBHOOK
               value: "http://n8n.default.svc:5678/healthz"
+            - name: N8N_API_URL
+              value: "https://n8n.sonagi.space"
+            - name: N8N_WEBHOOK_TODO_ADD
+              value: "https://n8n.sonagi.space/webhook/todo/add"
+            - name: N8N_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: spells-bot-credentials
+                  key: N8N_API_KEY
+                  optional: true
 
             # Paperclip API
             - name: PAPERCLIP_API_URL
