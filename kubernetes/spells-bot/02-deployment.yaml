@@ -96,6 +96,20 @@ spec:
                   key: N8N_API_KEY
                   optional: true
 
+            # Discord Centralized Webhooks (Managed by Terraform)
+            - name: WEBHOOK_ALERTS
+              valueFrom:
+                secretKeyRef:
+                  name: spells-bot-credentials
+                  key: WEBHOOK_ALERTS
+                  optional: true
+            - name: WEBHOOK_ACCOUNTING
+              valueFrom:
+                secretKeyRef:
+                  name: spells-bot-credentials
+                  key: WEBHOOK_ACCOUNTING
+                  optional: true
+
             # Paperclip API
             - name: PAPERCLIP_API_URL
               value: "http://100.91.9.83:3100/api"
