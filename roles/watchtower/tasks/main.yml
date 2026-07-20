@@ -10,12 +10,12 @@
 - name: Check if Docker config exists
   ansible.builtin.stat:
     path: /home/ubuntu/.docker/config.json
-  register: docker_config
+  register: watchtower_docker_config
 
 - name: Fail if Docker config is missing
   ansible.builtin.fail:
     msg: "Docker config.json not found! Please run 'docker login ghcr.io' first."
-  when: not docker_config.stat.exists
+  when: not watchtower_docker_config.stat.exists
 
 - name: Deploy Watchtower docker-compose.yml
   ansible.builtin.template:
