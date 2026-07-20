@@ -1,0 +1,14 @@
+---
+- name: Deploy Sonagi Draw via GHCR
+  hosts: iac_hub
+  become: yes
+  become_user: ubuntu
+
+  vars:
+    # Set these in your vault or CLI: --extra-vars "ghcr_username=foo ghcr_token=bar"
+    ghcr_username: "{{ ghcr_username | default('') }}"
+    ghcr_token: "{{ ghcr_token | default('') }}"
+
+  roles:
+    - sonagi_draw
+    - watchtower

@@ -1,0 +1,30 @@
+---
+- name: Ensure Watchtower directory exists
+  ansible.builtin.file:
+    path: /home/ubuntu/watchtower
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+
+- name: Check if Docker config exists
+  ansible.builtin.stat:
+    path: /home/ubuntu/.docker/config.json
+  register: docker_config
+
+- name: Fail if Docker config is missing
+  ansible.builtin.fail:
+    msg: "Docker config.json not found! Please run 'docker login ghcr.io' first."
+  when: not docker_config.stat.exists
+
+- name: Deploy Watchtower docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: /home/ubuntu/watchtower/docker-compose.yml
+    owner: ubuntu
+    group: ubuntu
+
+- name: Start Watchtower container
+  ansible.builtin.command: docker compose up -d
+  args:
+    chdir: /home/ubuntu/watchtower

@@ -1,0 +1,30 @@
+---
+- name: Ensure Sonagi Draw prod directory exists
+  ansible.builtin.file:
+    path: /home/ubuntu/sonagi-draw-prod
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: "0755"
+
+- name: Deploy docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: /home/ubuntu/sonagi-draw-prod/docker-compose.yml
+    owner: ubuntu
+    group: ubuntu
+
+- name: Log in to GHCR
+  ansible.builtin.command: docker login ghcr.io -u "{{ ghcr_username }}" -p "{{ ghcr_token }}"
+  when: ghcr_username is defined and ghcr_token is defined
+
+- name: Pull latest images
+  ansible.builtin.command: docker compose pull
+  args:
+    chdir: /home/ubuntu/sonagi-draw-prod
+  ignore_errors: true
+
+- name: Start Sonagi Draw containers
+  ansible.builtin.command: docker compose up -d
+  args:
+    chdir: /home/ubuntu/sonagi-draw-prod

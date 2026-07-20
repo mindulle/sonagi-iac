@@ -1,0 +1,17 @@
+version: "3.8"
+
+services:
+  web:
+    image: ghcr.io/mindulle/sonagi-draw-web:latest
+    ports:
+      - "8080:80"
+    restart: always
+
+  sync-server:
+    image: ghcr.io/mindulle/sonagi-draw-sync:latest
+    ports:
+      - "5858:5858"
+    volumes:
+      - /home/ubuntu/sonagi-draw-prod/.rooms:/app/.rooms
+      - /home/ubuntu/sonagi-draw-prod/.assets:/app/.assets
+    restart: always
