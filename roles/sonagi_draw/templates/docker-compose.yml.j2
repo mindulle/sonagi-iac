@@ -5,7 +5,7 @@ services:
       - "8080:80"
     restart: always
 
-  sync-server:
+  sonagi-draw-backend:
     image: ghcr.io/mindulle/sonagi-draw-sync:latest
     ports:
       - "5858:5858"
