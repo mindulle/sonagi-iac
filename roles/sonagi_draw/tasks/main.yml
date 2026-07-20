@@ -1,11 +1,15 @@
 ---
-- name: Ensure Sonagi Draw prod directory exists
+- name: Ensure Sonagi Draw prod directory and subdirectories exist
   ansible.builtin.file:
-    path: /home/ubuntu/sonagi-draw-prod
+    path: "{{ item }}"
     state: directory
     owner: ubuntu
     group: ubuntu
     mode: "0755"
+  loop:
+    - /home/ubuntu/sonagi-draw-prod
+    - /home/ubuntu/sonagi-draw-prod/.rooms
+    - /home/ubuntu/sonagi-draw-prod/.assets
 
 - name: Deploy docker-compose.yml
   ansible.builtin.template:
@@ -19,7 +23,7 @@
     registry: ghcr.io
     username: "{{ ghcr_username }}"
     password: "{{ ghcr_token }}"
-  when: ghcr_username is defined and ghcr_token is defined
+  when: ghcr_username | length > 0 and ghcr_token | length > 0
   no_log: true
 
 - name: Pull and start Sonagi Draw containers
