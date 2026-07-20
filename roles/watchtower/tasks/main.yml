@@ -25,6 +25,6 @@
     group: ubuntu
 
 - name: Start Watchtower container
-  ansible.builtin.command: docker compose up -d
-  args:
-    chdir: /home/ubuntu/watchtower
+  community.docker.docker_compose_v2:
+    project_src: /home/ubuntu/watchtower
+    state: present
