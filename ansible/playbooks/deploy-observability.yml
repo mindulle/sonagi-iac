@@ -1,0 +1,6 @@
+---
+- name: Deploy Observability Stack
+  hosts: mindullemonitor
+  become: yes
+  roles:
+    - observability
