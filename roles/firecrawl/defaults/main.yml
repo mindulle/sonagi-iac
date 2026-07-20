@@ -1,0 +1,30 @@
+---
+# Default variables for the firecrawl role
+
+firecrawl_install_dir: "/home/ubuntu/firecrawl"
+
+# .env configurations
+firecrawl_num_workers_per_queue: 4
+firecrawl_port: 3002
+firecrawl_host: "0.0.0.0"
+firecrawl_redis_url: "redis://redis:6379"
+firecrawl_redis_rate_limit_url: "redis://redis:6379"
+firecrawl_playwright_microservice_url: "http://playwright-service:3000/scrape"
+firecrawl_use_db_authentication: "false"
+
+firecrawl_crawl_concurrent_requests: 10
+firecrawl_max_concurrent_jobs: 5
+firecrawl_browser_pool_size: 5
+
+firecrawl_openai_api_key: ""
+firecrawl_openai_base_url: ""
+firecrawl_model_name: ""
+firecrawl_model_embedding_name: ""
+firecrawl_ollama_base_url: ""
+firecrawl_bull_auth_key: "@"
+firecrawl_logging_level: "INFO"
+
+firecrawl_proxy_server: ""
+firecrawl_proxy_username: ""
+firecrawl_proxy_password: ""
+firecrawl_block_media: ""

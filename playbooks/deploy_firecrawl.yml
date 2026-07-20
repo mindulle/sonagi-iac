@@ -1,0 +1,9 @@
+---
+- name: Deploy and Manage Firecrawl Infrastructure
+  hosts: localhost
+  connection: local
+  gather_facts: yes
+
+  roles:
+    - role: firecrawl
+      tags: ['firecrawl']

@@ -1,0 +1,27 @@
+---
+- name: Ensure Firecrawl installation directory exists
+  ansible.builtin.file:
+    path: "{{ firecrawl_install_dir }}"
+    state: directory
+    mode: '0755'
+
+- name: Deploy .env template
+  ansible.builtin.template:
+    src: .env.j2
+    dest: "{{ firecrawl_install_dir }}/.env"
+    mode: '0600'
+  notify: Restart Firecrawl
+
+- name: Deploy docker-compose.yaml template
+  ansible.builtin.template:
+    src: docker-compose.yaml.j2
+    dest: "{{ firecrawl_install_dir }}/docker-compose.yaml"
+    mode: '0644'
+  notify: Restart Firecrawl
+
+- name: Start Firecrawl via docker-compose
+  ansible.builtin.command: docker compose up -d
+  args:
+    chdir: "{{ firecrawl_install_dir }}"
+  register: compose_output
+  changed_when: "'Started' in compose_output.stdout or 'Recreated' in compose_output.stdout"

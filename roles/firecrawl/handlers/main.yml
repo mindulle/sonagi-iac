@@ -1,0 +1,5 @@
+---
+- name: Restart Firecrawl
+  ansible.builtin.command: docker compose up -d --force-recreate
+  args:
+    chdir: "{{ firecrawl_install_dir }}"
