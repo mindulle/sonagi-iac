@@ -1,0 +1,16 @@
+---
+- name: Ensure Wekan directory exists
+  file:
+    path: /opt/wekan
+    state: directory
+    mode: '0755'
+
+- name: Copy docker-compose template
+  template:
+    src: docker-compose.yml.j2
+    dest: /opt/wekan/docker-compose.yml
+
+- name: Start Wekan containers
+  command: docker compose up -d
+  args:
+    chdir: /opt/wekan

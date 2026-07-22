@@ -1,0 +1,46 @@
+version: '3.8'
+services:
+  wekan-db:
+    image: mongo:6.0
+    container_name: wekan-db
+    restart: always
+    command: mongod --oplogSize 128 --replSet rs0 --bind_ip_all
+    networks:
+      - wekan-tier
+    volumes:
+      - wekan-db:/data/db
+      - wekan-db-dump:/dump
+
+  wekan-db-setup:
+    image: mongo:6.0
+    container_name: wekan-db-setup
+    depends_on:
+      - wekan-db
+    networks:
+      - wekan-tier
+    restart: "no"
+    entrypoint: [ "bash", "-c", "sleep 10 && mongosh --host wekan-db --eval 'rs.initiate({_id: \"rs0\", members: [{_id: 0, host: \"wekan-db:27017\"}]})'" ]
+
+  wekan-app:
+    image: wekanteam/wekan:latest
+    container_name: wekan-app
+    restart: always
+    depends_on:
+      - wekan-db
+    networks:
+      - wekan-tier
+    ports:
+      - "{{ wekan_port | default('8081') }}:8080"
+    environment:
+      - WRAP_METEOR_ENV=true
+      - MONGO_URL=mongodb://wekan-db:27017/wekan
+      - ROOT_URL={{ wekan_root_url | default('http://localhost:8081') }}
+      - PORT=8080
+
+networks:
+  wekan-tier:
+    driver: bridge
+
+volumes:
+  wekan-db:
+  wekan-db-dump:

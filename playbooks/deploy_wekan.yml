@@ -1,0 +1,10 @@
+---
+- name: Deploy Wekan Kanban
+  hosts: devops
+  become: yes
+  vars:
+    wekan_port: 8081
+    wekan_root_url: "http://{{ ansible_host }}:8081"
+  roles:
+    - role: ../roles/wekan
+      tags: ['wekan']
