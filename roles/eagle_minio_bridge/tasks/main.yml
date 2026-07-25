@@ -9,7 +9,7 @@
 # 파이썬 스크립트 복사
 - name: Copy Python bridge script
   ansible.builtin.copy:
-    src: bridge.py
+    src: /home/ubuntu/llm-wiki/00_System/scripts/eagle_minio_bridge.py
     dest: /opt/eagle-minio-bridge/bridge.py
     mode: '0755'
 

@@ -4,7 +4,6 @@
   become: true
   vars:
     # Use the internal-notifications webhook confirmed earlier
-    discord_webhook_url: "https://discord.com/api/webhooks/1484329239795859587/ZSbwFaCWqUpHcNEY1hCwUpfXxbEw3ml4BcYpSC_Ds4hVUdSkErAjbgTowS4GjbXnk8iz"
     report_status: "Healthy ✅"
     report_color: 5763719 # Green
     issues_found: []

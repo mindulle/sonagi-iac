@@ -7,7 +7,7 @@
 
 - name: Copy bot source code
   ansible.builtin.copy:
-    src: bot/
+    src: /home/ubuntu/llm-wiki/00_System/scripts/intelligence_bot/
     dest: /opt/sonagi-intelligence/bot/
     mode: '0755'
 
