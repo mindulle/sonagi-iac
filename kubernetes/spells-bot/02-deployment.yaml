@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,7 +14,7 @@ spec:
       labels:
         app: spells-bot
       annotations:
-        rollout/trigger: "ebf4318"
+        rollout/trigger: ebf4318
     spec:
       securityContext:
         runAsNonRoot: true
@@ -23,113 +22,106 @@ spec:
         runAsGroup: 1001
         fsGroup: 1001
       containers:
-        - name: spells-bot
-          image: ghcr.io/mindulle/spells-bot:sha-96b1905
-          imagePullPolicy: Always
-          securityContext:
-            readOnlyRootFilesystem: true
-            allowPrivilegeEscalation: false
-          resources:
-            limits:
-              memory: "512Mi"
-              cpu: "500m"
-            requests:
-              memory: "256Mi"
-              cpu: "100m"
-          env:
-            - name: NODE_ENV
-              value: "production"
-            - name: LOG_LEVEL
-              value: "info"
-
-            # Use Kubernetes injected CA certificate for internal TLS (avoids disabling strict SSL)
-            - name: NODE_EXTRA_CA_CERTS
-              value: "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
-
-            # Discord Config
-            - name: DISCORD_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: spells-bot-credentials
-                  key: DISCORD_TOKEN
-            - name: DISCORD_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: spells-bot-credentials
-                  key: DISCORD_CLIENT_ID
-
-            # MinIO Config
-            - name: MINIO_ENDPOINT
-              value: "minio.default.svc"
-            - name: MINIO_PORT
-              value: "443"
-            - name: MINIO_USE_SSL
-              value: "true"
-            - name: MINIO_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: spells-bot-credentials
-                  key: MINIO_ACCESS_KEY
-            - name: MINIO_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: spells-bot-credentials
-                  key: MINIO_SECRET_KEY
-            - name: MINIO_DEFAULT_BUCKET
-              value: "sonagi-bucket"
-
-            # Eagle & K3s & n8n
-            - name: EAGLE_API_URL
-              value: "http://eagle-gallery.default.svc:41595"
-            - name: K3S_API_URL
-              value: "https://kubernetes.default.svc"
-            - name: N8N_HEALTH_WEBHOOK
-              value: "http://n8n.default.svc:5678/healthz"
-            - name: N8N_API_URL
-              value: "https://n8n.sonagi.space"
-            - name: N8N_WEBHOOK_TODO_ADD
-              value: "https://n8n.sonagi.space/webhook/todo/add"
-            - name: N8N_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: spells-bot-credentials
-                  key: N8N_API_KEY
-                  optional: true
-
-            # Discord Centralized Webhooks (Managed by Terraform)
-            - name: WEBHOOK_ALERTS
-              valueFrom:
-                secretKeyRef:
-                  name: spells-bot-credentials
-                  key: WEBHOOK_ALERTS
-                  optional: true
-            - name: WEBHOOK_ACCOUNTING
-              valueFrom:
-                secretKeyRef:
-                  name: spells-bot-credentials
-                  key: WEBHOOK_ACCOUNTING
-                  optional: true
-
-            # Paperclip API
-            - name: PAPERCLIP_API_URL
-              value: "http://100.91.9.83:3100/api"
-            - name: PAPERCLIP_COMPANY_ID_MINDULLE
-              value: "3fa0dfa2-9f91-4002-8012-ac598bbb4761"
-            - name: PAPERCLIP_COMPANY_ID_LIFE
-              value: "bdda2a51-1f01-42fa-a495-ce2a675122d1"
-            - name: PAPERCLIP_API_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: spells-bot-credentials
-                  key: PAPERCLIP_API_TOKEN
-                  optional: true
-
-            # Notion API
-            - name: NOTION_SCHEDULER_DATA_SOURCE_ID
-              value: "38a4abe3-a8af-8156-bd94-000b3c7c5677"
-            - name: NOTION_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: spells-bot-credentials
-                  key: NOTION_API_KEY
-                  optional: true
+      - name: spells-bot
+        image: ghcr.io/mindulle/spells-bot:sha-96b1905
+        imagePullPolicy: Always
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: 500m
+          requests:
+            memory: 256Mi
+            cpu: 100m
+        env:
+        - name: NODE_ENV
+          value: production
+        - name: LOG_LEVEL
+          value: info
+        - name: NODE_EXTRA_CA_CERTS
+          value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        - name: DISCORD_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: spells-bot-credentials
+              key: DISCORD_TOKEN
+        - name: DISCORD_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: spells-bot-credentials
+              key: DISCORD_CLIENT_ID
+        - name: MINIO_ENDPOINT
+          value: minio.default.svc
+        - name: MINIO_PORT
+          value: '443'
+        - name: MINIO_USE_SSL
+          value: 'true'
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: spells-bot-credentials
+              key: MINIO_ACCESS_KEY
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: spells-bot-credentials
+              key: MINIO_SECRET_KEY
+        - name: MINIO_DEFAULT_BUCKET
+          value: sonagi-bucket
+        - name: EAGLE_API_URL
+          value: http://eagle-gallery.default.svc:41595
+        - name: K3S_API_URL
+          value: https://kubernetes.default.svc
+        - name: N8N_HEALTH_WEBHOOK
+          value: http://n8n.default.svc:5678/healthz
+        - name: N8N_API_URL
+          value: https://n8n.sonagi.space
+        - name: N8N_WEBHOOK_TODO_ADD
+          value: https://n8n.sonagi.space/webhook/todo/add
+        - name: N8N_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: spells-bot-credentials
+              key: N8N_API_KEY
+              optional: true
+        - name: WEBHOOK_ALERTS
+          valueFrom:
+            secretKeyRef:
+              name: spells-bot-credentials
+              key: WEBHOOK_ALERTS
+              optional: true
+        - name: WEBHOOK_ACCOUNTING
+          valueFrom:
+            secretKeyRef:
+              name: spells-bot-credentials
+              key: WEBHOOK_ACCOUNTING
+              optional: true
+        - name: PAPERCLIP_API_URL
+          value: http://100.91.9.83:3100/api
+        - name: PAPERCLIP_COMPANY_ID_MINDULLE
+          value: 3fa0dfa2-9f91-4002-8012-ac598bbb4761
+        - name: PAPERCLIP_COMPANY_ID_LIFE
+          value: bdda2a51-1f01-42fa-a495-ce2a675122d1
+        - name: PAPERCLIP_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: spells-bot-credentials
+              key: PAPERCLIP_API_TOKEN
+              optional: true
+        - name: NOTION_SCHEDULER_DATA_SOURCE_ID
+          value: 38a4abe3-a8af-8156-bd94-000b3c7c5677
+        - name: NOTION_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: spells-bot-credentials
+              key: NOTION_API_KEY
+              optional: true
+        volumeMounts:
+        - name: eagle-library
+          mountPath: /data/eagle.library
+      volumes:
+      - name: eagle-library
+        persistentVolumeClaim:
+          claimName: sonagi-gallery-library-pvc
