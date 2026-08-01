@@ -118,6 +118,8 @@ spec:
               name: spells-bot-credentials
               key: NOTION_API_KEY
               optional: true
+        - name: N8N_WEBHOOK_URL_WEB_CLIP
+          value: https://n8n.sonagi.space/webhook/discord-web-clip
         volumeMounts:
         - name: eagle-library
           mountPath: /data/eagle.library
