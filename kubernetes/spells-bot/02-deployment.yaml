@@ -120,6 +120,8 @@ spec:
               optional: true
         - name: N8N_WEBHOOK_URL_WEB_CLIP
           value: https://n8n.sonagi.space/webhook/discord-web-clip
+        - name: DASHBOARD_CHANNEL_ID
+          value: '1479275323185954817'
         volumeMounts:
         - name: eagle-library
           mountPath: /data/eagle.library
