@@ -53,7 +53,7 @@ spec:
               name: spells-bot-credentials
               key: DISCORD_CLIENT_ID
         - name: MINIO_ENDPOINT
-          value: minio.default.svc
+          value: cdn.sonagi.space
         - name: MINIO_PORT
           value: '443'
         - name: MINIO_USE_SSL
@@ -75,7 +75,7 @@ spec:
         - name: K3S_API_URL
           value: https://kubernetes.default.svc
         - name: N8N_HEALTH_WEBHOOK
-          value: http://n8n.default.svc:5678/healthz
+          value: https://n8n.sonagi.space/healthz
         - name: N8N_API_URL
           value: https://n8n.sonagi.space
         - name: N8N_WEBHOOK_TODO_ADD
