@@ -1,0 +1,208 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonagi-ops-bot
+  labels:
+    app: sonagi-ops-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonagi-ops-bot
+  template:
+    metadata:
+      labels:
+        app: sonagi-ops-bot
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: ops-bot
+        image: ghcr.io/mindulle/sonagi-bots:main
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: 500m
+          requests:
+            memory: 256Mi
+            cpu: 100m
+        env:
+        - name: APP_NAME
+          value: ops-bot
+        - name: NODE_ENV
+          value: production
+        - name: LOG_LEVEL
+          value: info
+        - name: OPS_BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: sonagi-bots-credentials
+              key: OPS_BOT_TOKEN
+        - name: N8N_API_URL
+          value: https://n8n.sonagi.space
+        - name: N8N_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: sonagi-bots-credentials
+              key: N8N_API_KEY
+              optional: true
+        - name: PAPERCLIP_API_URL
+          value: http://100.91.9.83:3100/api
+        - name: PAPERCLIP_COMPANY_ID_MINDULLE
+          value: 3fa0dfa2-9f91-4002-8012-ac598bbb4761
+        - name: PAPERCLIP_COMPANY_ID_LIFE
+          value: bdda2a51-1f01-42fa-a495-ce2a675122d1
+        - name: PAPERCLIP_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: sonagi-bots-credentials
+              key: PAPERCLIP_API_TOKEN
+              optional: true
+        - name: NOTION_SCHEDULER_DATA_SOURCE_ID
+          value: 38a4abe3-a8af-8156-bd94-000b3c7c5677
+        - name: NOTION_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: sonagi-bots-credentials
+              key: NOTION_API_KEY
+              optional: true
+        - name: N8N_WEBHOOK_URL_WEB_CLIP
+          value: https://n8n.sonagi.space/webhook/discord-web-clip
+        - name: N8N_WEBHOOK_TODO_ADD
+          value: https://n8n.sonagi.space/webhook/todo/add
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonagi-dev-bot
+  labels:
+    app: sonagi-dev-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonagi-dev-bot
+  template:
+    metadata:
+      labels:
+        app: sonagi-dev-bot
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: dev-bot
+        image: ghcr.io/mindulle/sonagi-bots:main
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: 500m
+          requests:
+            memory: 256Mi
+            cpu: 100m
+        env:
+        - name: APP_NAME
+          value: dev-bot
+        - name: NODE_ENV
+          value: production
+        - name: LOG_LEVEL
+          value: info
+        - name: NODE_EXTRA_CA_CERTS
+          value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        - name: DEV_BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: sonagi-bots-credentials
+              key: DEV_BOT_TOKEN
+        - name: MINIO_ENDPOINT
+          value: cdn.sonagi.space
+        - name: N8N_API_URL
+          value: https://n8n.sonagi.space
+        - name: K3S_API_URL
+          value: https://kubernetes.default.svc
+        - name: DASHBOARD_CHANNEL_ID
+          value: '1533092154421805086'
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonagi-media-bot
+  labels:
+    app: sonagi-media-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonagi-media-bot
+  template:
+    metadata:
+      labels:
+        app: sonagi-media-bot
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: media-bot
+        image: ghcr.io/mindulle/sonagi-bots:main
+        imagePullPolicy: Always
+        securityContext:
+          readOnlyRootFilesystem: false
+          allowPrivilegeEscalation: false
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: 500m
+          requests:
+            memory: 256Mi
+            cpu: 100m
+        env:
+        - name: APP_NAME
+          value: media-bot
+        - name: NODE_ENV
+          value: production
+        - name: LOG_LEVEL
+          value: info
+        - name: MEDIA_BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: sonagi-bots-credentials
+              key: MEDIA_BOT_TOKEN
+        - name: MINIO_ENDPOINT
+          value: cdn.sonagi.space
+        - name: MINIO_PORT
+          value: '443'
+        - name: MINIO_USE_SSL
+          value: 'true'
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: sonagi-bots-credentials
+              key: MINIO_ACCESS_KEY
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: sonagi-bots-credentials
+              key: MINIO_SECRET_KEY
+        - name: MINIO_DEFAULT_BUCKET
+          value: sonagi-bucket
+        - name: EAGLE_API_URL
+          value: http://eagle-gallery.default.svc:41595
+        volumeMounts:
+        - name: eagle-library
+          mountPath: /data/eagle.library
+      volumes:
+      - name: eagle-library
+        persistentVolumeClaim:
+          claimName: sonagi-gallery-library-pvc
