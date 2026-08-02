@@ -41,7 +41,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: sonagi-bots-credentials
-              key: DISCORD_CLIENT_ID
+              key: OPS_CLIENT_ID
         - name: OPS_BOT_TOKEN
           valueFrom:
             secretKeyRef:
@@ -126,7 +126,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: sonagi-bots-credentials
-              key: DISCORD_CLIENT_ID
+              key: DEV_CLIENT_ID
         - name: DEV_BOT_TOKEN
           valueFrom:
             secretKeyRef:
@@ -188,7 +188,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: sonagi-bots-credentials
-              key: DISCORD_CLIENT_ID
+              key: MEDIA_CLIENT_ID
         - name: MEDIA_BOT_TOKEN
           valueFrom:
             secretKeyRef:
