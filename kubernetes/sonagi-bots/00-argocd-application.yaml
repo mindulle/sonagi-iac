@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sonagi-bots
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/mindulle/sonagi-iac.git
+    targetRevision: main
+    path: kubernetes/sonagi-bots
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
