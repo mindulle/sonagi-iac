@@ -21,7 +21,7 @@ spec:
         fsGroup: 1001
       containers:
       - name: ops-bot
-        image: ghcr.io/mindulle/sonagi-bots:main
+        image: ghcr.io/mindulle/sonagi-bots:sha-e930b25
         imagePullPolicy: Always
         resources:
           limits:
@@ -104,7 +104,7 @@ spec:
         fsGroup: 1001
       containers:
       - name: dev-bot
-        image: ghcr.io/mindulle/sonagi-bots:main
+        image: ghcr.io/mindulle/sonagi-bots:sha-e930b25
         imagePullPolicy: Always
         resources:
           limits:
@@ -165,7 +165,7 @@ spec:
         fsGroup: 1001
       containers:
       - name: media-bot
-        image: ghcr.io/mindulle/sonagi-bots:main
+        image: ghcr.io/mindulle/sonagi-bots:sha-e930b25
         imagePullPolicy: Always
         securityContext:
           readOnlyRootFilesystem: false
