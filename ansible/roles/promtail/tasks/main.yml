@@ -1,0 +1,25 @@
+---
+- name: Create promtail directory
+  ansible.builtin.file:
+    path: /opt/promtail
+    state: directory
+    mode: '0755'
+
+- name: Template promtail config
+  ansible.builtin.template:
+    src: promtail-config.yaml.j2
+    dest: /opt/promtail/promtail-config.yaml
+    mode: '0644'
+
+- name: Start Promtail container
+  ansible.builtin.shell: |
+    docker rm -f promtail || true
+    docker run -d \
+      --name promtail \
+      --restart unless-stopped \
+      -v /var/log:/var/log \
+      -v /var/lib/docker/containers:/var/lib/docker/containers:ro \
+      -v /opt/promtail/promtail-config.yaml:/etc/promtail/config.yml \
+      grafana/promtail:latest -config.file=/etc/promtail/config.yml
+  args:
+    executable: /bin/bash
