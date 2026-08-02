@@ -2,8 +2,7 @@
 - name: Log Rotation and Cleanup
   hosts: all
   become: true
-  vars:
-
+  vars: {}
   tasks:
     - name: Rotate Docker logs
       ansible.builtin.shell: |

@@ -1,3 +1,7 @@
+roles_path:
+  - roles
+  - ansible/roles
+
 skip_list:
   - yaml
   - fqcn
@@ -8,3 +12,4 @@ skip_list:
   - no-handler
   - command-instead-of-module
   - jinja
+  - var-naming
