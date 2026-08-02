@@ -2,8 +2,7 @@
 - name: Security Updates
   hosts: all
   become: true
-  vars:
-
+  vars: {}
   tasks:
     - name: Update apt cache
       ansible.builtin.apt:
