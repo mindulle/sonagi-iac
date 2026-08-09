@@ -44,6 +44,8 @@ spec:
                   key: password
             - name: MB_SITE_URL
               value: https://bi.sonagi.space
+            - name: MB_APPLICATION_COLORS
+              value: '{"brand":"#1c2c4d","accent0":"#1c2c4d","accent1":"#00ffcc","accent2":"#4A90E2","accent3":"#1275b5","accent4":"#a8dcee","accent5":"#1c2c4d","accent6":"#00ffcc","accent7":"#4A90E2"}'
           volumeMounts:
             # 로컬 SQLite DB들 (Eagle Gallery, Notion 등)을 읽기 위해 기존 볼륨 마운트는 유지
             - name: metabase-data
