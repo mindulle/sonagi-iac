@@ -1,0 +1,7 @@
+---
+- name: Deploy OpenPencil MCP Config for OpenCode
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  roles:
+    - openpencil

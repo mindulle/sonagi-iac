@@ -1,0 +1,19 @@
+---
+- name: Ensure jq is installed
+  apt:
+    name: jq
+    state: present
+  become: yes
+
+- name: Backup opencode config
+  copy:
+    src: ~/.config/opencode/opencode.jsonc
+    dest: ~/.config/opencode/opencode.jsonc.bak
+    remote_src: yes
+  ignore_errors: yes
+
+- name: Add OpenPencil MCP to opencode config
+  shell: |
+    jq '.mcp.openpencil = {"type": "local", "command": ["npx", "-y", "-p", "@open-pencil/mcp", "openpencil-mcp"], "env": {"OPENPENCIL_MCP_ROOT": "/home/ubuntu"}, "enabled": true}' ~/.config/opencode/opencode.jsonc > /tmp/opencode.jsonc.tmp && mv /tmp/opencode.jsonc.tmp ~/.config/opencode/opencode.jsonc
+  args:
+    executable: /bin/bash
