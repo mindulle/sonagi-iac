@@ -17,3 +17,41 @@
     jq '.mcp.openpencil = {"type": "local", "command": ["npx", "-y", "-p", "@open-pencil/mcp", "openpencil-mcp"], "env": {"OPENPENCIL_MCP_ROOT": "/home/ubuntu"}, "enabled": true}' ~/.config/opencode/opencode.jsonc > /tmp/opencode.jsonc.tmp && mv /tmp/opencode.jsonc.tmp ~/.config/opencode/opencode.jsonc
   args:
     executable: /bin/bash
+
+- name: Install NPM dependencies for OpenPencil
+  shell: /home/ubuntu/.bun/bin/bun install
+  args:
+    chdir: /home/ubuntu/open-pencil
+  become: no
+
+- name: Setup OpenPencil PM2 Process
+  shell: |
+    pm2 describe openpencil-web > /dev/null
+    if [ $? -eq 0 ]; then
+      OPENPENCIL_DEV_TOKEN="" pm2 restart openpencil-web --update-env
+    else
+      OPENPENCIL_DEV_TOKEN="" pm2 start "bun run dev --host" --name "openpencil-web"
+    fi
+    pm2 save
+  args:
+    chdir: /home/ubuntu/open-pencil
+  become: no
+
+- name: Deploy Nginx configuration for OpenPencil
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/sites-available/openpencil.conf
+  become: yes
+
+- name: Enable OpenPencil Nginx site
+  file:
+    src: /etc/nginx/sites-available/openpencil.conf
+    dest: /etc/nginx/sites-enabled/openpencil.conf
+    state: link
+  become: yes
+
+- name: Reload Nginx
+  service:
+    name: nginx
+    state: reloaded
+  become: yes
