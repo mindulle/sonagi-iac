@@ -1,0 +1,62 @@
+---
+- name: Tailscale Health Check and Recovery
+  hosts: all
+  become: true
+  vars:
+    tailscale_recovery_delay: 10
+  tasks:
+    - name: Check tailscaled service status
+      ansible.builtin.systemd:
+        name: tailscaled
+      register: tailscaled_status
+
+    - name: Show tailscaled status
+      ansible.builtin.debug:
+        msg: |
+          Host: {{ inventory_hostname }}
+          tailscaled state: {{ tailscaled_status.status.ActiveState }}
+          SubState: {{ tailscaled_status.status.SubState }}
+
+    - name: Restart tailscaled if not active
+      ansible.builtin.systemd:
+        name: tailscaled
+        state: restarted
+      when: tailscaled_status.status.ActiveState != 'active'
+      register: restart_result
+
+    - name: Wait for tailscaled to come back up
+      ansible.builtin.pause:
+        seconds: "{{ tailscale_recovery_delay }}"
+      when: restart_result is defined and restart_result.changed
+
+    - name: Check tailscale connection status
+      ansible.builtin.command: tailscale status --json
+      register: ts_status_json
+      changed_when: false
+      failed_when: false
+
+    - name: Parse and display tailscale status
+      ansible.builtin.debug:
+        msg: |
+          Host: {{ inventory_hostname }}
+          Tailscale backend: {{ (ts_status_json.stdout | from_json).BackendState | default('unknown') }}
+      when: ts_status_json.rc == 0
+
+    - name: Notify Discord on recovery
+      ansible.builtin.uri:
+        url: "{{ discord_webhook_url }}"
+        method: POST
+        body_format: json
+        body:
+          content: >
+            :white_check_mark: **[sonagi-iac] tailscaled recovered**
+            Host: `{{ inventory_hostname }}`
+            Was restarted by health-check playbook.
+        status_code: 204
+      when:
+        - restart_result is defined
+        - restart_result.changed
+        - discord_webhook_url is defined
+      delegate_to: localhost
+      become: false
+      failed_when: false
