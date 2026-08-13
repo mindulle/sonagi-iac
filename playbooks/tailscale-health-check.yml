@@ -2,6 +2,7 @@
 - name: Tailscale Health Check and Recovery
   hosts: all
   become: true
+  ignore_unreachable: true
   vars:
     tailscale_recovery_delay: 10
   tasks:
