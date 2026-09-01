@@ -1,0 +1,7 @@
+---
+- name: Deploy Sonagi Bots
+  hosts: devops
+  become: false
+  gather_facts: false
+  roles:
+    - role: sonagi-bots

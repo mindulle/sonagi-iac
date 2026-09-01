@@ -1,0 +1,27 @@
+---
+- name: Clone sonagi-bots repository
+  ansible.builtin.git:
+    repo: 'https://github.com/mindulle/sonagi-bots.git'
+    dest: "{{ sonagi_bots_repo_dir }}"
+    version: main
+    update: yes
+  notify: Restart sonagi-bots
+
+- name: Template .env file
+  ansible.builtin.template:
+    src: .env.j2
+    dest: "{{ sonagi_bots_repo_dir }}/.env"
+    mode: '0600'
+  notify: Restart sonagi-bots
+
+- name: Template docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ sonagi_bots_repo_dir }}/docker-compose.yml"
+    mode: '0644'
+  notify: Restart sonagi-bots
+
+- name: Start docker-compose
+  ansible.builtin.command:
+    cmd: docker compose up -d
+    chdir: "{{ sonagi_bots_repo_dir }}"

@@ -1,0 +1,5 @@
+---
+- name: Restart sonagi-bots
+  ansible.builtin.command:
+    cmd: docker compose up -d --build
+    chdir: "{{ sonagi_bots_repo_dir }}"

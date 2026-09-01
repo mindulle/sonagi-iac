@@ -1,0 +1,19 @@
+---
+# defaults file for sonagi-bots
+
+sonagi_bots_repo_dir: "/home/mindulle/sonagi-bots"
+
+# Environment Variables for .env
+ops_bot_token: "your_token_here"
+discord_client_id: "1436611660713300048"
+n8n_api_url: "https://n8n.sonagi.space"
+n8n_api_key: "your_token_here"
+n8n_webhook_url_web_clip: "https://n8n.sonagi.space/webhook/discord-web-clip"
+media_bot_token: "your_token_here"
+dev_bot_token: "your_token_here"
+
+node_env: "production"
+log_level: "info"
+lavalink_url: "lavalink:2333"
+lavalink_password: "youshallnotpass"
+lavalink_secure: "false"
