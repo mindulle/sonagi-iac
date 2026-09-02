@@ -1,0 +1,30 @@
+---
+- name: Deploy and Manage BI Dashboard Host
+  hosts: mindullemonitor
+  become: yes
+  tasks:
+    - name: Ensure dashboard serving directory exists
+      file:
+        path: /home/mindulle/bi-dashboard-final
+        state: directory
+        owner: mindulle
+        group: mindulle
+        mode: '0755'
+
+    - name: Ensure BI Dashboard container is running
+      docker_container:
+        name: bi-dashboard-final
+        image: nginx:alpine
+        state: started
+        restart_policy: always
+        ports:
+          - "3001:80"
+        volumes:
+          - /home/mindulle/bi-dashboard-final:/usr/share/nginx/html:ro
+
+    - name: Ensure Port 3001 is open in firewall (UFW)
+      ufw:
+        rule: allow
+        port: '3001'
+        proto: tcp
+      when: ansible_os_family == "Debian"

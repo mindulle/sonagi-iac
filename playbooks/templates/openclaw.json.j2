@@ -3,7 +3,7 @@
     "mode": "local",
     "auth": {
       "mode": "token",
-      "token": "{{ bws_gateway_token | default('fallback-token-change-me') }}"
+      "token": "{{ bws_gateway_token | mandatory }}"
     },
     "port": {{ openclaw_port | default(18789) }},
     "bind": "lan"

@@ -1,0 +1,62 @@
+---
+- name: Sonagi Wiki Knowledge Automation
+  hosts: openclaw_gateways
+  vars:
+    project_root: "/home/mindulle/projects/llm-wiki"
+    python_bin: "/usr/bin/python3"
+    discord_webhook_url: "https://discord.com/api/webhooks/1484329239795859587/ZSbwFaCWqUpHcNEY1hCwUpfXxbEw3ml4BcYpSC_Ds4hVUdSkErAjbgTowS4GjbXnk8iz"
+
+  tasks:
+    - name: 1. Notion to Wiki Sync
+      shell: "export NOTION_API_KEY={{ lookup('env', 'NOTION_API_KEY') }} && {{ python_bin }} {{ project_root }}/00_System/scripts/notion_to_wiki_sync.py"
+      args:
+        chdir: "{{ project_root }}"
+      register: notion_sync_res
+      ignore_errors: yes
+
+    - name: 2. Newsletter & RSS Ingestion
+      shell: "{{ python_bin }} {{ project_root }}/00_System/scripts/process_wiki.py --mode newsletters"
+      args:
+        chdir: "{{ project_root }}"
+      register: newsletter_sync_res
+      ignore_errors: yes
+
+    - name: 3. Opportunity Crawler (LoudSourcing & Alignerr)
+      shell: "{{ python_bin }} {{ project_root }}/00_System/scripts/opportunity_crawler.py"
+      args:
+        chdir: "{{ project_root }}"
+      register: crawler_res
+      ignore_errors: yes
+
+    - name: 4. Wiki Link Healing & Maintenance
+      shell: "{{ python_bin }} {{ project_root }}/00_System/scripts/wiki_healer.py"
+      args:
+        chdir: "{{ project_root }}"
+      register: healer_res
+      ignore_errors: yes
+
+    - name: Send Discord Status Update
+      uri:
+        url: "{{ discord_webhook_url }}"
+        method: POST
+        body_format: json
+        body:
+          embeds:
+            - title: "📚 Sonagi Wiki Automation: Execution Report"
+              description: "Knowledge ingestion and maintenance tasks completed."
+              color: 3447003
+              fields:
+                - name: "Notion Sync"
+                  value: "{{ '✅ Success' if notion_sync_res.rc == 0 else '❌ Failed' }}"
+                  inline: true
+                - name: "Crawler"
+                  value: "{{ '✅ Success' if crawler_res.rc == 0 else '❌ Failed' }}"
+                  inline: true
+                - name: "Maintenance"
+                  value: "{{ '✅ Success' if healer_res.rc == 0 else '❌ Failed' }}"
+                  inline: true
+              footer:
+                text: "Wiki Pipeline Controller"
+              timestamp: "{{ lookup('pipe', 'date -u +%Y-%m-%dT%H:%M:%SZ') }}"
+        status_code: 204
+      ignore_errors: yes
