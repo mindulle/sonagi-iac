@@ -53,6 +53,11 @@ spec:
             secretKeyRef:
               name: atlantis-vcs
               key: webhook-secret
+        - name: CLOUDFLARE_API_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: atlantis-vcs
+              key: cloudflare-token
         - name: ATLANTIS_PORT
           value: "4141"
         - name: ATLANTIS_HIDE_PREV_PLAN_COMMENTS
