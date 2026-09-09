@@ -65,6 +65,55 @@
     mode: '0644'
   become: yes
 
+- name: Create grafana provisioning directories
+
+  ansible.builtin.file:
+
+    path: "/opt/observability/provisioning/{{ item }}"
+
+    state: directory
+
+    owner: ubuntu
+
+    group: ubuntu
+
+    mode: '0755'
+
+  loop:
+
+    - datasources
+
+    - dashboards
+
+    - alerting
+
+  become: yes
+
+
+- name: Template grafana provisioning files
+
+  ansible.builtin.template:
+
+    src: "{{ item.src }}"
+
+    dest: "/opt/observability/provisioning/{{ item.dest }}"
+
+    owner: ubuntu
+
+    group: ubuntu
+
+    mode: '0644'
+
+  loop:
+
+    - { src: "grafana-datasources.yml.j2", dest: "datasources/datasources.yaml" }
+
+    - { src: "grafana-dashboards.yml.j2", dest: "dashboards/dashboards.yaml" }
+
+    - { src: "grafana-alerting.yml.j2", dest: "alerting/alerting.yaml" }
+
+  become: yes
+
 - name: Start docker-compose
   ansible.builtin.command:
     cmd: docker compose up -d
