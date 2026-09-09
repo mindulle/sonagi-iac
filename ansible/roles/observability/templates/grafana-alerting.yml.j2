@@ -1,0 +1,29 @@
+apiVersion: 1
+contactPoints:
+  - orgId: 1
+    name: Discord Alerts
+    receivers:
+      - uid: discord-receiver-1
+        type: discord
+        settings:
+          url: "{{ discord_webhook_url }}"
+policies:
+  - orgId: 1
+    receiver: Discord Alerts
+    group_by: ['grafana_folder', 'alertname']
+
+rules:
+  - orgId: 1
+    name: OpenHands Error Alerts
+    folder: "Infrastructure"
+    interval: 1m
+    rules:
+      - uid: openhands-error-rule
+        title: OpenHands Error Log Detected
+        condition: A
+        data:
+          - refId: A
+            datasourceUid: loki
+            model:
+              expr: 'rate({container="openhands"} |= "error" [5m]) > 0 or rate({container="openhands"} |= "exception" [5m]) > 0'
+            queryType: range
