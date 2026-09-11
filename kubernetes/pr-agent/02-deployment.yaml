@@ -28,19 +28,21 @@ spec:
         ports:
         - containerPort: 3000
         env:
+        - name: CONFIG_GITHUB_DEPLOYMENT_TYPE
+          value: "app"
         - name: CONFIG_GITHUB_APP_NAME
           value: "Sonagi PR-Agent"
-        - name: GITHUB_APP_ID
+        - name: CONFIG_GITHUB_ID
           valueFrom:
             secretKeyRef:
               name: pr-agent-credentials
               key: GITHUB_APP_ID
-        - name: GITHUB_WEBHOOK_SECRET
+        - name: CONFIG_GITHUB_SECRET
           valueFrom:
             secretKeyRef:
               name: pr-agent-credentials
               key: GITHUB_WEBHOOK_SECRET
-        - name: GITHUB_PRIVATE_KEY
+        - name: CONFIG_GITHUB_PRIVATE_KEY
           valueFrom:
             secretKeyRef:
               name: pr-agent-credentials
@@ -56,7 +58,6 @@ spec:
           value: "gemini-3-flash"
         - name: CONFIG_FALLBACK_MODELS
           value: "gemini-3.6-flash-high"
-        # 토큰 최적화를 위한 PR-Agent 커스텀 설정
         - name: CONFIG_IGNORE_PR_TITLE
           value: "true"
         - name: PR_REVIEWER_REQUIRE_SCORE_REVIEW
