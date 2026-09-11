@@ -32,7 +32,7 @@ spec:
           value: "app"
         - name: GITHUB__APP_NAME
           value: "Sonagi PR-Agent"
-        - name: GITHUB__ID
+        - name: GITHUB__APP_ID
           valueFrom:
             secretKeyRef:
               name: pr-agent-credentials
