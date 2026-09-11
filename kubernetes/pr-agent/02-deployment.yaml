@@ -55,11 +55,11 @@ spec:
         - name: OPENAI__API_BASE
           value: "http://100.91.9.83:38107/v1"
         - name: CONFIG__MODEL
-          value: "gemini-3-flash"
+          value: "openai/gemini-3-flash"
         - name: CONFIG__FALLBACK_MODELS
         - name: CONFIG__CUSTOM_MODEL_MAX_TOKENS
           value: "32000"
-          value: "gemini-3.6-flash-high"
+          value: "openai/gemini-3.6-flash-high"
         - name: CONFIG__IGNORE_PR_TITLE
           value: "true"
         - name: PR_REVIEWER__REQUIRE_SCORE_REVIEW
