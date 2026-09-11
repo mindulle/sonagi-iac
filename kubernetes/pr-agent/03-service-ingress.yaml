@@ -20,7 +20,7 @@ metadata:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
   rules:
-  - host: pr-agent.sonagi.space
+  - host: pr-agent.lab.sonagi.space
     http:
       paths:
       - path: /
@@ -32,5 +32,5 @@ spec:
               number: 80
   tls:
   - hosts:
-    - pr-agent.sonagi.space
+    - pr-agent.lab.sonagi.space
     secretName: pr-agent-tls
