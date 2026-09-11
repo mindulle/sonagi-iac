@@ -28,42 +28,42 @@ spec:
         ports:
         - containerPort: 3000
         env:
-        - name: CONFIG_GITHUB_DEPLOYMENT_TYPE
+        - name: GITHUB__DEPLOYMENT_TYPE
           value: "app"
-        - name: CONFIG_GITHUB_APP_NAME
+        - name: GITHUB__APP_NAME
           value: "Sonagi PR-Agent"
-        - name: CONFIG_GITHUB_ID
+        - name: GITHUB__ID
           valueFrom:
             secretKeyRef:
               name: pr-agent-credentials
               key: GITHUB_APP_ID
-        - name: CONFIG_GITHUB_SECRET
+        - name: GITHUB__WEBHOOK_SECRET
           valueFrom:
             secretKeyRef:
               name: pr-agent-credentials
               key: GITHUB_WEBHOOK_SECRET
-        - name: CONFIG_GITHUB_PRIVATE_KEY
+        - name: GITHUB__PRIVATE_KEY
           valueFrom:
             secretKeyRef:
               name: pr-agent-credentials
               key: GITHUB_PRIVATE_KEY
-        - name: OPENAI_KEY
+        - name: OPENAI__KEY
           valueFrom:
             secretKeyRef:
               name: pr-agent-credentials
               key: OPENAI_KEY
-        - name: OPENAI_BASE_URL
+        - name: OPENAI__API_BASE
           value: "http://100.91.9.83:38107/v1"
-        - name: CONFIG_MODEL
+        - name: CONFIG__MODEL
           value: "gemini-3-flash"
-        - name: CONFIG_FALLBACK_MODELS
+        - name: CONFIG__FALLBACK_MODELS
           value: "gemini-3.6-flash-high"
-        - name: CONFIG_IGNORE_PR_TITLE
+        - name: CONFIG__IGNORE_PR_TITLE
           value: "true"
-        - name: PR_REVIEWER_REQUIRE_SCORE_REVIEW
+        - name: PR_REVIEWER__REQUIRE_SCORE_REVIEW
           value: "false"
-        - name: PR_REVIEWER_REQUIRE_TESTS_REVIEW
+        - name: PR_REVIEWER__REQUIRE_TESTS_REVIEW
           value: "false"
-        - name: PR_DESCRIPTION_GENERATE_DIAGRAM
+        - name: PR_DESCRIPTION__GENERATE_DIAGRAM
           value: "false"
         command: ["python", "-m", "pr_agent.servers.github_app"]
