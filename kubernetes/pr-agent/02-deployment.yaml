@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pr-agent
+  labels:
+    app: pr-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pr-agent
+  template:
+    metadata:
+      labels:
+        app: pr-agent
+    spec:
+      containers:
+      - name: pr-agent
+        image: codiumai/pr-agent:latest
+        imagePullPolicy: Always
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: 500m
+          requests:
+            memory: 256Mi
+            cpu: 100m
+        ports:
+        - containerPort: 3000
+        env:
+        - name: GITHUB__DEPLOYMENT_TYPE
+          value: "app"
+        - name: GITHUB__APP_NAME
+          value: "Sonagi PR-Agent"
+        - name: GITHUB__APP_ID
+          valueFrom:
+            secretKeyRef:
+              name: pr-agent-credentials
+              key: GITHUB_APP_ID
+        - name: GITHUB__WEBHOOK_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: pr-agent-credentials
+              key: GITHUB_WEBHOOK_SECRET
+        - name: GITHUB__PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: pr-agent-credentials
+              key: GITHUB_PRIVATE_KEY
+        - name: OPENAI__KEY
+          valueFrom:
+            secretKeyRef:
+              name: pr-agent-credentials
+              key: OPENAI_KEY
+        - name: OPENAI__API_BASE
+          value: "http://100.91.9.83:38107/v1"
+        - name: CONFIG__MODEL
+          value: "openai/gemini-3-flash"
+        - name: CONFIG__FALLBACK_MODELS
+          value: "openai/gemini-3.6-flash-high"
+        - name: CONFIG__CUSTOM_MODEL_MAX_TOKENS
+          value: "32000"
+        - name: CONFIG__IGNORE_PR_TITLE
+          value: "true"
+        - name: PR_REVIEWER__REQUIRE_SCORE_REVIEW
+          value: "false"
+        - name: PR_REVIEWER__REQUIRE_TESTS_REVIEW
+          value: "false"
+        - name: PR_DESCRIPTION__GENERATE_DIAGRAM
+          value: "false"
+        command: ["python", "-m", "pr_agent.servers.github_app"]

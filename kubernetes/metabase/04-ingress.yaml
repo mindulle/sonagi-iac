@@ -9,7 +9,7 @@ metadata:
     kubernetes.io/ingress.class: traefik
 spec:
   rules:
-    - host: bi.sonagi.space
+    - host: bi.lab.sonagi.space
       http:
         paths:
           - path: /

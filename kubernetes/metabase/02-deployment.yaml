@@ -43,7 +43,7 @@ spec:
                   name: metabase-db-secret
                   key: password
             - name: MB_SITE_URL
-              value: https://bi.sonagi.space
+              value: https://bi.lab.sonagi.space
             - name: MB_APPLICATION_COLORS
               value: '{"brand":"#1c2c4d","accent0":"#1c2c4d","accent1":"#00ffcc","accent2":"#4A90E2","accent3":"#1275b5","accent4":"#a8dcee","accent5":"#1c2c4d","accent6":"#00ffcc","accent7":"#4A90E2"}'
           volumeMounts:

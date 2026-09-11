@@ -48,7 +48,7 @@ spec:
               name: sonagi-bots-credentials
               key: OPS_BOT_TOKEN
         - name: N8N_API_URL
-          value: https://n8n.sonagi.space
+          value: https://n8n.lab.sonagi.space
         - name: N8N_API_KEY
           valueFrom:
             secretKeyRef:
@@ -76,9 +76,9 @@ spec:
               key: NOTION_API_KEY
               optional: true
         - name: N8N_WEBHOOK_URL_WEB_CLIP
-          value: https://n8n.sonagi.space/webhook/discord-web-clip
+          value: https://n8n.lab.sonagi.space/webhook/discord-web-clip
         - name: N8N_WEBHOOK_TODO_ADD
-          value: https://n8n.sonagi.space/webhook/todo/add
+          value: https://n8n.lab.sonagi.space/webhook/todo/add
 
 ---
 apiVersion: apps/v1
@@ -133,9 +133,9 @@ spec:
               name: sonagi-bots-credentials
               key: DEV_BOT_TOKEN
         - name: MINIO_ENDPOINT
-          value: cdn.sonagi.space
+          value: cdn.lab.sonagi.space
         - name: N8N_API_URL
-          value: https://n8n.sonagi.space
+          value: https://n8n.lab.sonagi.space
         - name: K3S_API_URL
           value: https://kubernetes.default.svc
         - name: DASHBOARD_CHANNEL_ID
@@ -195,7 +195,7 @@ spec:
               name: sonagi-bots-credentials
               key: MEDIA_BOT_TOKEN
         - name: MINIO_ENDPOINT
-          value: cdn.sonagi.space
+          value: cdn.lab.sonagi.space
         - name: MINIO_PORT
           value: '443'
         - name: MINIO_USE_SSL

@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pr-agent-service
+spec:
+  selector:
+    app: pr-agent
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pr-agent-ingress
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  rules:
+  - host: pr-agent.lab.sonagi.space
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: pr-agent-service
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - pr-agent.lab.sonagi.space
+    secretName: pr-agent-tls
