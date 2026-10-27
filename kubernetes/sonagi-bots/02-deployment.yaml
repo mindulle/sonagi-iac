@@ -6,6 +6,12 @@ metadata:
     app: sonagi-ops-bot
 spec:
   replicas: 1
+  progressDeadlineSeconds: 300
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: sonagi-ops-bot
@@ -89,6 +95,12 @@ metadata:
     app: sonagi-dev-bot
 spec:
   replicas: 1
+  progressDeadlineSeconds: 300
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: sonagi-dev-bot
@@ -150,6 +162,12 @@ metadata:
     app: sonagi-media-bot
 spec:
   replicas: 1
+  progressDeadlineSeconds: 300
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: sonagi-media-bot
@@ -213,11 +231,5 @@ spec:
         - name: MINIO_DEFAULT_BUCKET
           value: sonagi-bucket
         - name: EAGLE_API_URL
-          value: http://eagle-gallery.default.svc:41595
-        volumeMounts:
-        - name: eagle-library
-          mountPath: /data/eagle.library
-      volumes:
-      - name: eagle-library
-        persistentVolumeClaim:
-          claimName: sonagi-gallery-library-pvc
+          value: http://sonagi-assets-svc.default.svc:34920
+
