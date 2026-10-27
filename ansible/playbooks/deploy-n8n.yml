@@ -1,0 +1,6 @@
+---
+- name: Deploy n8n to mindullemonitor2
+  hosts: mindullemonitor2
+  become: yes
+  roles:
+    - n8n

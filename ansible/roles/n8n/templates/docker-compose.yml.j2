@@ -1,0 +1,46 @@
+version: '3.7'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=n8n
+      - POSTGRES_PASSWORD={{ n8n_postgres_password | default('n8n_postgres_password_2026') }}
+      - POSTGRES_DB=n8n
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - n8n_net
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    restart: always
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD={{ n8n_postgres_password | default('n8n_postgres_password_2026') }}
+      - N8N_ENCRYPTION_KEY={{ n8n_encryption_key | default('ZjY3NGRhMzNkYzQwNmE4YTg3NzY3ZDEyMzQ1Njc4OTA=') }}
+      - WEBHOOK_URL=https://n8n.sonagi.space/
+      - N8N_HOST=n8n.sonagi.space
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - TZ=Asia/Seoul
+    ports:
+      - "5678:5678"
+    volumes:
+      - ./data:/home/node/.n8n
+    networks:
+      - n8n_net
+    depends_on:
+      - postgres
+
+networks:
+  n8n_net:
+    driver: bridge
