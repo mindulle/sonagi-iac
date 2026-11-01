@@ -22,7 +22,8 @@ services:
     container_name: pr-agent
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "3010:3000"
+    entrypoint: ["python", "-m", "pr_agent.servers.github_app"]
     env_file:
       - .env.pr-agent
     environment:
@@ -38,7 +39,6 @@ services:
       - PR_DESCRIPTION__GENERATE_DIAGRAM=false
     volumes:
       - ./pr-agent-private-key.pem:/app/pr-agent-private-key.pem:ro
-    command: ["python", "-m", "pr_agent.servers.github_app"]
 
   # 3. GitHub Runner: Dedicated self-hosted runner for llm-wiki
   github-runner:
