@@ -1,13 +1,14 @@
 services:
   # 1. Piston: Multi-language Code Execution Sandbox
   piston:
-    image: ghcr.io/mindulle/piston:latest
+    image: ghcr.io/engineer-man/piston:latest
     container_name: piston
     restart: unless-stopped
     privileged: true
-    command: ["su", "--", "piston", "-c", "node /piston_api/src"]
     ports:
       - "2000:2000"
+    volumes:
+      - /tmp/piston/packages:/piston/packages
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:2000/api/v2/runtimes"]
       interval: 30s
