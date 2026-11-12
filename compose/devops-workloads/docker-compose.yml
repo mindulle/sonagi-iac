@@ -1,0 +1,60 @@
+services:
+  # 1. Piston: Multi-language Code Execution Sandbox
+  piston:
+    image: ghcr.io/engineer-man/piston:latest
+    container_name: piston
+    restart: unless-stopped
+    privileged: true
+    ports:
+      - "2000:2000"
+    volumes:
+      - /tmp/piston/packages:/piston/packages
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:2000/api/v2/runtimes"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # 2. PR-Agent: Automated AI PR Reviewer Webhook
+  pr-agent:
+    image: codiumai/pr-agent:latest
+    container_name: pr-agent
+    restart: unless-stopped
+    ports:
+      - "3010:3000"
+    entrypoint: ["python", "-m", "pr_agent.servers.github_app"]
+    env_file:
+      - .env.pr-agent
+    environment:
+      - GITHUB__DEPLOYMENT_TYPE=app
+      - GITHUB__APP_NAME=Sonagi PR-Agent
+      - OPENAI__API_BASE=http://100.91.9.83:38107/v1
+      - CONFIG__MODEL=openai/gemini-3-flash
+      - CONFIG__FALLBACK_MODELS=openai/gemini-3.6-flash-high
+      - CONFIG__CUSTOM_MODEL_MAX_TOKENS=32000
+      - CONFIG__IGNORE_PR_TITLE=true
+      - PR_REVIEWER__REQUIRE_SCORE_REVIEW=false
+      - PR_REVIEWER__REQUIRE_TESTS_REVIEW=false
+      - PR_DESCRIPTION__GENERATE_DIAGRAM=false
+    volumes:
+      - ./pr-agent-private-key.pem:/app/pr-agent-private-key.pem:ro
+
+  # 3. GitHub Runner: Dedicated self-hosted runner for llm-wiki
+  github-runner:
+    image: myoung34/github-runner:ubuntu-jammy
+    container_name: github-runner
+    restart: unless-stopped
+    env_file:
+      - .env.github-runner
+    environment:
+      - REPO_URL=https://github.com/mindulle/llm-wiki
+      - RUNNER_NAME=devops-docker-runner
+      - RUNNER_LABELS=self-hosted,docker,devops-node
+      - RUNNER_WORKDIR=/tmp/runner/work
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - runner-work:/tmp/runner/work
+
+volumes:
+  runner-work:
