@@ -33,8 +33,8 @@
   ansible.builtin.file:
     path: /opt/observability/data/uptime-kuma
     state: directory
-    owner: ubuntu
-    group: ubuntu
+    owner: root
+    group: root
     mode: '0755'
   become: yes
 
@@ -42,6 +42,15 @@
   ansible.builtin.template:
     src: docker-compose.yml.j2
     dest: /opt/observability/docker-compose.yml
+    owner: ubuntu
+    group: ubuntu
+    mode: '0644'
+  become: yes
+
+- name: Template blackbox.yml
+  ansible.builtin.template:
+    src: blackbox.yml.j2
+    dest: /opt/observability/blackbox.yml
     owner: ubuntu
     group: ubuntu
     mode: '0644'
@@ -119,3 +128,5 @@
     cmd: docker compose up -d
     chdir: /opt/observability
   become: yes
+  register: compose_up
+  changed_when: "'Started' in compose_up.stderr or 'Created' in compose_up.stderr or 'Recreated' in compose_up.stderr"

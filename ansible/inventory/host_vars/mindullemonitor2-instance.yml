@@ -1,0 +1,11 @@
+---
+# Ubuntu installer 계열은 파일명이 다르다. 잘못 만든 50-cloud-init.yaml 은 제거한다.
+netplan_file: 00-installer-config.yaml
+netplan_interface: enp1s0
+netplan_address: 192.168.0.9/24
+netplan_gateway: 192.168.0.1
+netplan_remove:
+  - 50-cloud-init.yaml
+netplan_wifi:
+  - interface: wlx3c789523f70b
+    ssid: iptime

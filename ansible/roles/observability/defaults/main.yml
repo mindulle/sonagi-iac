@@ -1,0 +1,36 @@
+---
+prometheus_node_exporters:
+  - { target: '10.0.0.182:9100', instance: 'n8n-instance' }
+  - { target: '100.82.184.115:9100', instance: 'mindullemonitor-instance' }
+  - { target: 'mindullemonitor2.tailb95307.ts.net:9100', instance: 'mindullemonitor2-instance' }
+  - { target: '100.82.121.40:9100', instance: 'devops-instance' }
+
+prometheus_cloudflared_target: '100.113.113.72:20241'
+
+# TLS 만료 감시 대상 (NPM 공개 호스트)
+prometheus_tls_targets:
+  - activity.sonagi.space
+  - adguard.sonagi.space
+  - agent.sonagi.space
+  - argocd.sonagi.space
+  - assets.sonagi.space
+  - atlantis.sonagi.space
+  - bi.sonagi.space
+  - cdn.sonagi.space
+  - comfyui.sonagi.space
+  - grafana.sonagi.space
+  - logs.sonagi.space
+  - mem0.sonagi.space
+  - minio.sonagi.space
+  - n8n.sonagi.space
+  - npm.sonagi.space
+  - paperclip.sonagi.space
+  - pr-agent.sonagi.space
+  - preview.sonagi.space
+  - prometheus.sonagi.space
+  - ref.sonagi.space
+  - s3.sonagi.space
+  - semaphore.sonagi.space
+  - status.sonagi.space
+  - storage.sonagi.space
+  - sync.sonagi.space

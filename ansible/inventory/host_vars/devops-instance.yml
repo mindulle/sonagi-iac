@@ -1,0 +1,5 @@
+---
+netplan_file: 50-cloud-init.yaml
+netplan_interface: eth0
+netplan_address: 192.168.0.2/24
+netplan_gateway: 192.168.0.1

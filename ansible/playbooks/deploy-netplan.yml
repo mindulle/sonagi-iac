@@ -1,0 +1,8 @@
+---
+# 홈랩 노드의 정적 네트워크를 선언적으로 관리한다.
+# 실행: ansible-playbook -i inventory/hosts.ini playbooks/deploy-netplan.yml --check --diff
+- name: Configure static networking for home lab nodes
+  hosts: homelab_static
+  become: true
+  roles:
+    - netplan_static

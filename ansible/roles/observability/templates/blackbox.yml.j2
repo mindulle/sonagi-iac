@@ -1,0 +1,9 @@
+# {{ ansible_managed }}
+modules:
+  http_any:
+    prober: http
+    timeout: 10s
+    http:
+      valid_status_codes: []
+      preferred_ip_protocol: ip4
+      follow_redirects: false
