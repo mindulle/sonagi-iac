@@ -1,0 +1,24 @@
+---
+- name: Remove stray netplan files
+  ansible.builtin.file:
+    path: "/etc/netplan/{{ item }}"
+    state: absent
+  loop: "{{ netplan_remove }}"
+  notify: Netplan apply
+
+- name: Template static netplan config
+  ansible.builtin.template:
+    src: netplan.yaml.j2
+    dest: "/etc/netplan/{{ netplan_file }}"
+    owner: root
+    group: root
+    mode: '0600'
+  notify:
+    - Netplan generate
+    - Netplan apply
+
+- name: "Mask systemd-networkd-wait-online (static IP: waiting is pointless)"
+  ansible.builtin.systemd:
+    name: systemd-networkd-wait-online
+    enabled: false
+    masked: true

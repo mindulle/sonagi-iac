@@ -1,0 +1,9 @@
+---
+# netplan 파일 이름 (호스트마다 다르다: Ubuntu cloud 이미지는 50-cloud-init.yaml)
+netplan_file: 50-cloud-init.yaml
+netplan_wakeonlan: true
+netplan_route_metric: 100
+# 제거할 잡다한 netplan 파일 (예: 잘못 만든 50-cloud-init.yaml)
+netplan_remove: []
+# Wi-Fi 백업망 (optional)
+netplan_wifi: []

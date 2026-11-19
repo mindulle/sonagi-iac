@@ -35,6 +35,7 @@
     mode: '0644'
 
 - name: Run n8n docker-compose up
-  ansible.builtin.shell: docker-compose up -d
+  ansible.builtin.command: docker-compose up -d
   args:
     chdir: /home/mindulle/n8n
+  changed_when: false

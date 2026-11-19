@@ -1,0 +1,26 @@
+# {{ ansible_managed }}
+network:
+  version: 2
+  ethernets:
+    {{ netplan_interface }}:
+      dhcp4: false
+      optional: true
+      addresses: [{{ netplan_address }}]
+      routes:
+        - to: default
+          via: {{ netplan_gateway }}
+          metric: {{ netplan_route_metric }}
+{% if netplan_wakeonlan %}
+      wakeonlan: true
+{% endif %}
+{% if netplan_wifi %}
+  wifis:
+{% for w in netplan_wifi %}
+    {{ w.interface }}:
+      dhcp4: true
+      dhcp4-overrides:
+        route-metric: 600
+      access-points:
+        "{{ w.ssid }}": {}
+{% endfor %}
+{% endif %}

@@ -1,3 +1,4 @@
+# {{ ansible_managed }}
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
@@ -6,3 +7,36 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+
+  - job_name: 'node_exporter'
+    static_configs:
+{% for node in prometheus_node_exporters %}
+      - targets: ['{{ node.target }}']
+        labels:
+          instance: '{{ node.instance }}'
+{% endfor %}
+
+  - job_name: "cloudflared"
+    static_configs:
+      - targets: ["{{ prometheus_cloudflared_target }}"]
+        labels:
+          instance: "edge-gateway"
+
+  - job_name: "blackbox_tls"
+    metrics_path: /probe
+    scrape_interval: 5m
+    scrape_timeout: 20s
+    params:
+      module: ["http_any"]
+    static_configs:
+      - targets:
+{% for target in prometheus_tls_targets %}
+          - https://{{ target }}
+{% endfor %}
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
