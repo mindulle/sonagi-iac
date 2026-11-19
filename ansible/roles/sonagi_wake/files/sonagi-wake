@@ -1,0 +1,267 @@
+#!/usr/bin/env bash
+# sonagi-wake (llmops edition)
+#
+# This machine (llmops) is on Oracle Cloud (10.0.0.x) and cannot reach
+# 192.168.0.x directly. Recovery is attempted via Tailscale or WoL through
+# whichever homelab machine is still reachable.
+#
+# Handled cases:
+#   mindullemonitor:
+#     B  devops alive  + monitor tailscale dead → devops ProxyJump → tailscaled restart
+#     D  devops alive  + monitor off            → devops → wakeonlan monitor
+#     G  devops dead                            → give up (no path to 192.168.0.x)
+#
+#   devops:
+#     C  monitor alive + devops tailscale dead  → monitor → ssh devops → tailscaled restart
+#     E  monitor alive + devops off             → monitor → wakeonlan devops
+#     F  monitor dead                           → give up
+#
+# Usage:
+#   sonagi-wake <machine>
+#   sonagi-wake --list
+
+set -euo pipefail
+
+# ── Machine registry ─────────────────────────────────────────────────────────
+declare -A LAN_IP=(
+  [mindullemonitor2]="192.168.0.9"
+  [mindullemonitor]="192.168.0.10"
+  [devops]="192.168.0.2"
+)
+
+declare -A MAC=(
+  [mindullemonitor2]="70:85:c2:80:9f:ae" # 유선 LAN MAC
+  [mindullemonitor]="10:62:e5:0c:84:80"
+  [devops]="14:dd:a9:0c:28:56"
+)
+
+declare -A SSH_USER=(
+  [mindullemonitor2]="mindulle"
+  [mindullemonitor]="mindulle"
+  [devops]="mindulle"
+)
+
+declare -A TAILSCALE_IP=(
+  [mindullemonitor2]="100.69.255.15"
+  [mindullemonitor]="100.82.184.115"
+  [devops]="100.82.121.40"
+)
+
+# ── SSH config ───────────────────────────────────────────────────────────────
+SSH_KEY="${HOME}/.ssh/oracle_sonagi"
+SSH_OPTS="-o StrictHostKeyChecking=no -o ConnectTimeout=8 -i ${SSH_KEY}"
+
+# ── Helpers ──────────────────────────────────────────────────────────────────
+ts_active() {
+  # usage: ts_active <tailscale_ip>
+  # NOTE: a healthy peer with no recent traffic shows "idle", not "active".
+  # Treat anything that is not explicitly "offline" as reachable.
+  tailscale status 2>/dev/null | grep "${1}" | grep -qv "offline"
+}
+
+lan_reachable_via() {
+  # usage: lan_reachable_via <proxy_ts_ip> <target_lan_ip>
+  ssh ${SSH_OPTS} "mindulle@${1}" "ping -c 1 -W 3 ${2}" &>/dev/null
+}
+
+restart_tailscaled_via() {
+  # usage: restart_tailscaled_via <proxy_ts_ip> <target_lan_ip> <user>
+  # ProxyJump: the private key exists on this host only, not on the relay.
+  ssh ${SSH_OPTS} -o ProxyJump="mindulle@${1}" "${3}@${2}" \
+    'sudo systemctl restart tailscaled && echo ok'
+}
+
+wol_via() {
+  # usage: wol_via <proxy_ts_ip> <mac>
+  ssh ${SSH_OPTS} "mindulle@${1}" "wakeonlan ${2} && echo 'WoL packet sent'"
+}
+
+_wait_tailscale() {
+  # usage: _wait_tailscale <ts_ip> <name> [max_attempts=6]
+  local ts_ip="$1" name="$2" max="${3:-6}"
+  echo "[sonagi-wake] Waiting for Tailscale (up to $((max * 5))s)..."
+  for i in $(seq 1 "${max}"); do
+    sleep 5
+    STATUS=$(tailscale status 2>/dev/null | grep "${ts_ip}" || true)
+    if [ -n "${STATUS}" ] && ! echo "${STATUS}" | grep -q "offline"; then
+      echo "[sonagi-wake] OK: ${name} is back online!"
+      echo "${STATUS}"
+      return 0
+    fi
+    echo "[sonagi-wake] Still waiting... (${i}/${max}, $((i*5))s elapsed)"
+  done
+  echo "[sonagi-wake] WARNING: connection not confirmed after $((max*5))s."
+  echo "[sonagi-wake] Run: tailscale status | grep ${ts_ip}"
+  return 1
+}
+
+list_machines() {
+  echo "Registered machines:"
+  for name in "${!LAN_IP[@]}"; do
+    printf "  %-20s LAN: %-16s MAC: %-18s Tailscale: %s\n" \
+      "${name}" "${LAN_IP[$name]}" "${MAC[$name]}" "${TAILSCALE_IP[$name]}"
+  done
+  echo ""
+  echo "Note: llmops cannot reach 192.168.0.x directly."
+  echo "  mindullemonitor: devops ProxyJump (B) or devops→WoL (D)"
+  echo "  devops:          monitor→tailscaled (C) or monitor→WoL (E)"
+  echo "  Both unreachable: give up — physical access required (F/G)"
+}
+
+# ── Wake logic ───────────────────────────────────────────────────────────────
+wake_mindullemonitor() {
+  local ts_ip="${TAILSCALE_IP[mindullemonitor]}"
+  local lan_ip="${LAN_IP[mindullemonitor]}"
+  local mac="${MAC[mindullemonitor]}"
+  local user="${SSH_USER[mindullemonitor]}"
+  local devops_ts="${TAILSCALE_IP[devops]}"
+
+  if ts_active "${ts_ip}"; then
+    echo "[sonagi-wake] mindullemonitor is already active. Nothing to do."
+    tailscale status 2>/dev/null | grep "${ts_ip}"
+    return 0
+  fi
+
+  echo "[sonagi-wake] mindullemonitor Tailscale not active."
+
+  if ts_active "${devops_ts}"; then
+    echo "[sonagi-wake] devops is reachable. Checking monitor via devops..."
+
+    if lan_reachable_via "${devops_ts}" "${lan_ip}"; then
+      # Case B: monitor on, tailscaled dead
+      echo "[sonagi-wake] Case B: monitor is on. Restarting tailscaled via devops..."
+      restart_tailscaled_via "${devops_ts}" "${lan_ip}" "${user}"
+      _wait_tailscale "${ts_ip}" "mindullemonitor" 6
+    else
+      # Case D: monitor off → WoL from devops
+      echo "[sonagi-wake] Case D: monitor appears off. Sending WoL via devops..."
+      echo "[sonagi-wake] MAC: ${mac}"
+      wol_via "${devops_ts}" "${mac}"
+      _wait_tailscale "${ts_ip}" "mindullemonitor" 24
+    fi
+  else
+    # Case G: devops also unreachable
+    echo "[sonagi-wake] Case G: devops is also unreachable."
+    echo "[sonagi-wake] No path to 192.168.0.x from Oracle Cloud."
+    echo "[sonagi-wake] Physical access required."
+    return 1
+  fi
+}
+
+wake_devops() {
+  local ts_ip="${TAILSCALE_IP[devops]}"
+  local lan_ip="${LAN_IP[devops]}"
+  local mac="${MAC[devops]}"
+  local user="${SSH_USER[devops]}"
+  local monitor_ts="${TAILSCALE_IP[mindullemonitor]}"
+
+  if ts_active "${ts_ip}"; then
+    echo "[sonagi-wake] devops is already active. Nothing to do."
+    tailscale status 2>/dev/null | grep "${ts_ip}"
+    return 0
+  fi
+
+  echo "[sonagi-wake] devops Tailscale not active."
+
+  if ts_active "${monitor_ts}"; then
+    echo "[sonagi-wake] mindullemonitor is reachable. Checking devops via monitor..."
+
+    local target_ip="${lan_ip}"
+    if ! lan_reachable_via "${monitor_ts}" "${target_ip}"; then
+      if lan_reachable_via "${monitor_ts}" "192.168.0.6"; then
+        target_ip="192.168.0.6"
+      fi
+    fi
+
+    if lan_reachable_via "${monitor_ts}" "${target_ip}"; then
+      # Case C: devops on, tailscaled dead
+      echo "[sonagi-wake] Case C: devops is on (${target_ip}). Restarting tailscaled via monitor..."
+      restart_tailscaled_via "${monitor_ts}" "${target_ip}" "${user}"
+      _wait_tailscale "${ts_ip}" "devops" 6
+    else
+      # Case E: devops off → WoL from monitor
+      echo "[sonagi-wake] Case E: devops appears off. Sending WoL via monitor..."
+      echo "[sonagi-wake] MAC: ${mac}"
+      wol_via "${monitor_ts}" "${mac}"
+      _wait_tailscale "${ts_ip}" "devops" 24
+    fi
+  else
+    # Case F: monitor also unreachable
+    echo "[sonagi-wake] Case F/G: mindullemonitor is also unreachable."
+    echo "[sonagi-wake] No relay available to reach devops."
+    echo "[sonagi-wake] Physical access required."
+    return 1
+  fi
+}
+
+wake_mindullemonitor2() {
+  local ts_ip="${TAILSCALE_IP[mindullemonitor2]}"
+  local lan_ip="${LAN_IP[mindullemonitor2]}"
+  local mac="${MAC[mindullemonitor2]}"
+  local user="${SSH_USER[mindullemonitor2]}"
+  local devops_ts="${TAILSCALE_IP[devops]}"
+  local monitor_ts="${TAILSCALE_IP[mindullemonitor]}"
+
+  if ts_active "${ts_ip}"; then
+    echo "[sonagi-wake] mindullemonitor2 is already active. Nothing to do."
+    tailscale status 2>/dev/null | grep "${ts_ip}"
+    return 0
+  fi
+
+  echo "[sonagi-wake] mindullemonitor2 Tailscale not active."
+
+  # Try devops first, then mindullemonitor as relay
+  local relay_ts=""
+  if ts_active "${devops_ts}"; then
+    relay_ts="${devops_ts}"
+  elif ts_active "${monitor_ts}"; then
+    relay_ts="${monitor_ts}"
+  fi
+
+  if [[ -n "${relay_ts}" ]]; then
+    echo "[sonagi-wake] Relay node reachable. Checking mindullemonitor2 via relay..."
+    if lan_reachable_via "${relay_ts}" "${lan_ip}"; then
+      echo "[sonagi-wake] Case B/C: mindullemonitor2 is on. Restarting tailscaled via relay..."
+      restart_tailscaled_via "${relay_ts}" "${lan_ip}" "${user}"
+      _wait_tailscale "${ts_ip}" "mindullemonitor2" 6
+    else
+      echo "[sonagi-wake] Case D/E: mindullemonitor2 appears off. Sending WoL via relay..."
+      echo "[sonagi-wake] MAC: ${mac}"
+      wol_via "${relay_ts}" "${mac}"
+      _wait_tailscale "${ts_ip}" "mindullemonitor2" 24
+    fi
+  else
+    echo "[sonagi-wake] Case F/G: No relays (devops/mindullemonitor) available."
+    echo "[sonagi-wake] Physical access required."
+    return 1
+  fi
+}
+
+# ── Main ─────────────────────────────────────────────────────────────────────
+case "${1:-}" in
+  ""|-h|--help)
+    echo "Usage: sonagi-wake <machine>"
+    echo "       sonagi-wake --list"
+    echo ""
+    list_machines
+    exit 0
+    ;;
+  --list)
+    list_machines
+    exit 0
+    ;;
+esac
+
+MACHINE="$1"
+if [[ -z "${LAN_IP[$MACHINE]+_}" ]]; then
+  echo "[sonagi-wake] ERROR: Unknown machine '${MACHINE}'"
+  echo ""
+  list_machines
+  exit 1
+fi
+
+case "${MACHINE}" in
+  mindullemonitor2) wake_mindullemonitor2 ;;
+  mindullemonitor) wake_mindullemonitor ;;
+  devops)          wake_devops ;;
+esac

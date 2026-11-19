@@ -1,0 +1,12 @@
+---
+- name: Install sonagi-wake
+  ansible.builtin.copy:
+    src: sonagi-wake
+    dest: /usr/local/bin/sonagi-wake
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Validate sonagi-wake syntax
+  ansible.builtin.command: bash -n /usr/local/bin/sonagi-wake
+  changed_when: false

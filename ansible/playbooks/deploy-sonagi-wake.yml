@@ -1,0 +1,8 @@
+---
+# llmops(실행 노드)에 sonagi-wake 를 배포한다.
+#   ansible-playbook -i inventory/hosts.ini playbooks/deploy-sonagi-wake.yml --check --diff
+- name: Deploy sonagi-wake to the control node
+  hosts: iac_hub
+  become: true
+  roles:
+    - sonagi_wake
