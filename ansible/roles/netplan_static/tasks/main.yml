@@ -4,7 +4,7 @@
     path: "/etc/netplan/{{ item }}"
     state: absent
   loop: "{{ netplan_remove }}"
-  notify: netplan apply
+  notify: Netplan apply
 
 - name: Template static netplan config
   ansible.builtin.template:
@@ -14,8 +14,8 @@
     group: root
     mode: '0600'
   notify:
-    - netplan generate
-    - netplan apply
+    - Netplan generate
+    - Netplan apply
 
 - name: "Mask systemd-networkd-wait-online (static IP: waiting is pointless)"
   ansible.builtin.systemd:
