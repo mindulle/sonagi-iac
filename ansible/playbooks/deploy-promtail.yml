@@ -1,6 +1,9 @@
 ---
+# 주의: edge-gateway 의 promtail 은 /home/ubuntu/edge-infra/docker-compose.yml 로 관리한다.
+#       이 role 은 `docker run` 방식이라, edge-gateway 에 실행하면 compose 관리 컨테이너와 충돌한다.
+#       (NPM access log 수집·positions 영속화가 compose 쪽에만 들어가 있다)
 - name: Deploy Promtail for Unified Log Collection
-  hosts: all
+  hosts: "all:!edge_gateway"
   become: yes
   roles:
     - promtail
