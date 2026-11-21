@@ -1,0 +1,31 @@
+hub:
+  config:
+    JupyterHub:
+      authenticator_class: dummy
+    DummyAuthenticator:
+      password: "" # 비밀번호 없이 ID만 치면 접속되는 옵션 B 모드
+
+singleuser:
+  image:
+    name: jupyter/scipy-notebook
+    tag: latest
+  memory:
+    limit: "1.5G"
+    guarantee: "512M"
+  cpu:
+    limit: "1"
+    guarantee: "0.2"
+  storage:
+    type: dynamic
+    capacity: 2Gi # 유저 1명당 할당할 독립 디스크 크기
+  
+  # K3s의 로컬 스토리지를 활용하기 위함
+  extraEnv:
+    JUPYTER_ENABLE_LAB: "yes"
+
+proxy:
+  secretToken: "a09f3e5db1a7001469e3ea97e1cb9eb4a96b4295e8697cd7fdb7b2a688970e60" # 내부 프록시용 통신 토큰 (랜덤 생성값)
+  service:
+    type: NodePort
+    nodePorts:
+      http: 30080 # 외부 접속 포트 설정

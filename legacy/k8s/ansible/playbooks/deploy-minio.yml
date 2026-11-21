@@ -1,0 +1,6 @@
+---
+- name: Deploy MinIO via IaC
+  hosts: devops
+  become: yes
+  roles:
+    - minio

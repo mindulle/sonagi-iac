@@ -1,3 +1,4 @@
 *.retry
 .vault_pass
 host_vars/**/vault.yml
+.opendevbrowser/

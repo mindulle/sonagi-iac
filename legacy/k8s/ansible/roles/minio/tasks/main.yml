@@ -1,0 +1,8 @@
+- name: Create MinIO k8s manifests
+  template:
+    src: minio-manifests.yml.j2
+    dest: /tmp/minio-manifests.yml
+
+- name: Apply MinIO k8s manifests
+  command: kubectl apply -f /tmp/minio-manifests.yml
+

@@ -1,0 +1,24 @@
+---
+- name: Create namespace for JupyterHub
+  shell: kubectl create namespace jupyter
+  register: ns_result
+  failed_when: ns_result.rc != 0 and 'AlreadyExists' not in ns_result.stderr
+  changed_when: ns_result.rc == 0
+
+- name: Add JupyterHub Helm repository
+  shell: helm repo add jupyterhub https://jupyterhub.github.io/helm-chart/ && helm repo update
+  changed_when: false
+
+- name: Create temporary values file on target
+  copy:
+    content: "{{ lookup('template', 'values.yaml.j2') }}"
+    dest: "/tmp/jupyterhub-values.yaml"
+
+- name: Deploy JupyterHub via Helm
+  shell: |
+    helm upgrade --install jupyterhub jupyterhub/jupyterhub \
+      --namespace jupyter \
+      --version=3.2.1 \
+      --values /tmp/jupyterhub-values.yaml
+  register: helm_deploy
+  changed_when: true

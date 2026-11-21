@@ -1,0 +1,6 @@
+---
+- name: Deploy JupyterHub to K3s (devops)
+  hosts: devops
+  become: yes
+  roles:
+    - jupyterhub
