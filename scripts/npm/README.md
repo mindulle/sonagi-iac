@@ -10,6 +10,12 @@ export NPM_PASSWORD='...'
 export CF_DNS_API_TOKEN='...'   # issue_cert.py 에서만 필요
 ```
 
+로컬에 저장된 자격증명을 쓰려면(2026-11-21 회전본):
+
+```bash
+set -a; . ~/.secrets/npm-admin; set +a
+```
+
 | 스크립트 | 용도 |
 | --- | --- |
 | `check_cert.py [cert_id]` | 인증서 만료일·도메인 확인 |
