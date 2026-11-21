@@ -12,18 +12,27 @@ policies:
     receiver: Discord Alerts
     group_by: ['grafana_folder', 'alertname']
 
-rules:
+# Grafana 12+ 는 최상위 `rules:` 대신 `groups:` 아래에 규칙을 둔다.
+# (최상위 rules 형식은 조용히 무시되어 규칙이 0개로 남는다 — 2026-11 실제 발생)
+groups:
   - orgId: 1
     name: OpenHands Error Alerts
-    folder: "Infrastructure"
+    folder: Infrastructure
     interval: 1m
     rules:
       - uid: openhands-error-rule
         title: OpenHands Error Log Detected
         condition: A
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        isPaused: false
         data:
           - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
             datasourceUid: loki
             model:
               expr: 'rate({container="openhands"} |= "error" [5m]) > 0 or rate({container="openhands"} |= "exception" [5m]) > 0'
-            queryType: range
+              queryType: range

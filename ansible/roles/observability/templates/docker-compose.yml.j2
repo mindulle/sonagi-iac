@@ -4,8 +4,8 @@ services:
     container_name: prometheus
     user: "1000:1000"
     dns:
+      - 100.100.100.100
       - 1.1.1.1
-      - 8.8.8.8
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./data/prometheus:/prometheus
@@ -22,8 +22,8 @@ services:
     container_name: grafana
     user: "1000:1000"
     dns:
+      - 100.100.100.100
       - 1.1.1.1
-      - 8.8.8.8
     ports:
       - "3003:3000"
     volumes:
@@ -46,8 +46,8 @@ services:
     image: louislam/uptime-kuma:1
     container_name: uptime-kuma
     dns:
+      - 100.100.100.100
       - 1.1.1.1
-      - 8.8.8.8
     volumes:
       - ./data/uptime-kuma:/app/data
     ports:
@@ -59,8 +59,8 @@ services:
     container_name: blackbox-exporter
     restart: unless-stopped
     dns:
+      - 100.100.100.100
       - 1.1.1.1
-      - 8.8.8.8
     command:
       - "--config.file=/etc/blackbox_exporter/config.yml"
     volumes:

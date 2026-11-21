@@ -11,4 +11,5 @@ backup_retention_days: 7
 docker_cleanup_days: 7
 
 # 알림 설정
-discord_webhook_url: "https://discord.com/api/webhooks/1076044841445765180/VhiSXkSC_Q9fYKgEoxdGlWWzhwyEJXW7LJTVMzpSNjcI2MrwmRlEYSYzmzPNYQXAxyil"
+# #system-alerts (Tier-1) firehose webhook. Grafana + Ansible playbook 알림이 이리로 온다.
+discord_webhook_url: "https://discord.com/api/webhooks/1573666843246469164/60bf6R2X726bN4PgIoyCqCix21VIG6sxLpm8Uqa3jDDg1-6ToS4AfnkcJBuWrqOmAiqn"
