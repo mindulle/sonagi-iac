@@ -8,29 +8,26 @@ prometheus_node_exporters:
 prometheus_cloudflared_target: '100.113.113.72:20241'
 
 # TLS 만료 감시 대상 (NPM 공개 호스트)
+# 2026-11-21 정리: argocd(k3s 폐기), comfyui(호스트 오프라인), paperclip(폐기),
+# preview(임시 서버), sync(socket.io 전용, HTTP 404) 는 프로브에서 제외.
 prometheus_tls_targets:
   - activity.sonagi.space
   - adguard.sonagi.space
   - agent.sonagi.space
-  - argocd.sonagi.space
   - assets.sonagi.space
   - atlantis.sonagi.space
   - bi.sonagi.space
   - cdn.sonagi.space
-  - comfyui.sonagi.space
   - grafana.sonagi.space
   - logs.sonagi.space
   - mem0.sonagi.space
   - minio.sonagi.space
   - n8n.sonagi.space
   - npm.sonagi.space
-  - paperclip.sonagi.space
   - pr-agent.sonagi.space
-  - preview.sonagi.space
   - prometheus.sonagi.space
   - ref.sonagi.space
   - s3.sonagi.space
   - semaphore.sonagi.space
   - status.sonagi.space
   - storage.sonagi.space
-  - sync.sonagi.space
