@@ -10,15 +10,15 @@ prometheus_cloudflared_target: '100.113.113.72:20241'
 # TLS 만료 감시 대상 (NPM 공개 호스트)
 # 2026-11-21 정리: argocd(k3s 폐기), comfyui(호스트 오프라인), paperclip(폐기),
 # preview(임시 서버), sync(socket.io 전용, HTTP 404) 는 프로브에서 제외.
-# bi 는 public(bi.sonagi.space) Cloudflare 라우트가 죽어 있어 내부 표준인
-# bi.lab.sonagi.space 하나로 통일한다.
+# bi 는 공개 라우트가 죽어 있어 내부 전용 이름(bi.sonagi.space)으로 통일한다.
+# 내부 해석은 AdGuard rewrite(*.sonagi.space -> 100.113.113.72)가 담당한다.
 prometheus_tls_targets:
   - activity.sonagi.space
   - adguard.sonagi.space
   - agent.sonagi.space
   - assets.sonagi.space
   - atlantis.sonagi.space
-  - bi.lab.sonagi.space
+  - bi.sonagi.space
   - cdn.sonagi.space
   - grafana.sonagi.space
   - logs.sonagi.space
