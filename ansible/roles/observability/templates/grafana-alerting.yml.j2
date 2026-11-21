@@ -401,13 +401,13 @@ groups:
         condition: A
         noDataState: OK
         execErrState: Alerting
-        for: 10m
+        for: 15m
         isPaused: false
         labels:
           severity: warning
         annotations:
           runbook_url: "https://github.com/mindulle/llm-wiki/blob/main/00_System/OPS_OBSERVABILITY_RUNBOOK.md"
-          summary: "SSH 인증 실패가 10분간 30회 초과"
+          summary: "SSH 인증 실패가 10분간 60회 초과"
           description: "출발지 IP를 확인하고 fail2ban/방화벽 정책을 점검하세요. 정상 baseline은 시간당 약 50회입니다."
         data:
           - refId: A
@@ -417,7 +417,7 @@ groups:
             datasourceUid: "{{ grafana_loki_datasource_uid }}"
             model:
               editorMode: code
-              expr: 'sum(count_over_time({job="varlogs"} |~ "(?i)failed password|invalid user" [10m])) > 30'
+              expr: 'sum(count_over_time({job="varlogs"} |~ "(?i)failed password|invalid user" [10m])) > 60'
               queryType: range
               legendFormat: "ssh auth failures"
 
