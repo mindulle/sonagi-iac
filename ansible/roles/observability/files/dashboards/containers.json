@@ -1,0 +1,163 @@
+{
+  "uid": "sonagi-containers",
+  "title": "Containers (cAdvisor)",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timezone": "utc",
+  "editable": true,
+  "tags": [
+    "sonagi",
+    "ops"
+  ],
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Running containers",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "count(container_start_time_seconds{name=~\".+\"})",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Crash-looping",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 8,
+        "h": 4
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "value"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "count(changes(container_start_time_seconds{name=~\".+\"}[30m]) > 2)",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Top CPU (cores, 5m)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 24,
+        "h": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "topk(10, rate(container_cpu_usage_seconds_total{name=~\".+\"}[5m]))",
+          "instant": true,
+          "format": "table",
+          "legendFormat": "{{name}}"
+        }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Working set memory (MB)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "w": 24,
+        "h": 9
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "topk(10, container_memory_working_set_bytes{name=~\".+\"} / 1024 / 1024)",
+          "instant": true,
+          "format": "table",
+          "legendFormat": "{{name}}"
+        }
+      ]
+    }
+  ]
+}

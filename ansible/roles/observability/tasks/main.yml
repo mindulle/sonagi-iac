@@ -123,6 +123,24 @@
 
   become: yes
 
+- name: Create Grafana dashboards directory
+  ansible.builtin.file:
+    path: /opt/observability/data/grafana/dashboards
+    state: directory
+    owner: "1000"
+    group: "1000"
+    mode: '0755'
+  become: yes
+
+- name: Copy Grafana dashboards
+  ansible.builtin.copy:
+    src: "dashboards/"
+    dest: "/opt/observability/data/grafana/dashboards/"
+    owner: "1000"
+    group: "1000"
+    mode: '0644'
+  become: yes
+
 - name: Start docker-compose
   ansible.builtin.command:
     cmd: docker compose up -d

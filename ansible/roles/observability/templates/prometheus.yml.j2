@@ -22,6 +22,15 @@ scrape_configs:
         labels:
           instance: "edge-gateway"
 
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["100.82.184.115:8081"]
+        labels:
+          instance: "gateway"
+      - targets: ["100.82.121.40:8081"]
+        labels:
+          instance: "devops"
+
   - job_name: "blackbox_tls"
     metrics_path: /probe
     scrape_interval: 5m
