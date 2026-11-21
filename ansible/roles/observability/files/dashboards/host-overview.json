@@ -310,6 +310,41 @@
           "legendFormat": "{{instance}}"
         }
       ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Disk forecast in 30d (GB available)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 18,
+        "w": 24,
+        "h": 6
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 8
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "expr": "predict_linear(node_filesystem_avail_bytes{mountpoint=\"/\",fstype=~\"ext4|xfs\"}[7d], 30*24*3600) / 1e9",
+          "legendFormat": "{{instance}}"
+        }
+      ]
     }
   ]
 }

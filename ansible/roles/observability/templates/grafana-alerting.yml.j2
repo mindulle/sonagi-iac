@@ -7,10 +7,23 @@ contactPoints:
         type: discord
         settings:
           url: "{{ discord_webhook_url }}"
+  # severity=critical 은 #sonagi-ops 로 보내 사람이 바로 보게 한다.
+  - orgId: 1
+    name: Discord Ops
+    receivers:
+      - uid: discord-receiver-ops
+        type: discord
+        settings:
+          url: "{{ discord_ops_webhook_url }}"
 policies:
   - orgId: 1
     receiver: Discord Alerts
     group_by: ['grafana_folder', 'alertname']
+    routes:
+      - receiver: Discord Ops
+        object_matchers: [['severity', '=', 'critical']]
+        group_by: ['grafana_folder', 'alertname']
+        repeat_interval: 4h
 
 # Grafana 12+ 는 최상위 `rules:` 대신 `groups:` 아래에 규칙을 둔다.
 # (최상위 rules 형식은 조용히 무시되어 규칙이 0개로 남는다 — 2026-11 실제 발생)
@@ -382,3 +395,79 @@ groups:
               expr: 'sum(rate({job="docker"} | detected_level="error" [5m])) > 0.5'
               queryType: range
               legendFormat: "docker errors"
+
+      - uid: ssh-brute-force
+        title: SSH brute force attempt
+        condition: A
+        noDataState: OK
+        execErrState: Alerting
+        for: 10m
+        isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          runbook_url: "https://github.com/mindulle/llm-wiki/blob/main/00_System/OPS_OBSERVABILITY_RUNBOOK.md"
+          summary: "SSH 인증 실패가 10분간 30회 초과"
+          description: "출발지 IP를 확인하고 fail2ban/방화벽 정책을 점검하세요. 정상 baseline은 시간당 약 50회입니다."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "{{ grafana_loki_datasource_uid }}"
+            model:
+              editorMode: code
+              expr: 'sum(count_over_time({job="varlogs"} |~ "(?i)failed password|invalid user" [10m])) > 30'
+              queryType: range
+              legendFormat: "ssh auth failures"
+
+      - uid: http-auth-spike
+        title: HTTP 401/403 spike
+        condition: A
+        noDataState: OK
+        execErrState: Alerting
+        for: 15m
+        isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          runbook_url: "https://github.com/mindulle/llm-wiki/blob/main/00_System/OPS_OBSERVABILITY_RUNBOOK.md"
+          summary: "NPM 401/403 응답이 10분간 50회 초과"
+          description: "자격증명 대입 또는 잘못된 클라이언트 설정일 수 있습니다. 어느 host가 맞고 있는지 확인하세요."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: "{{ grafana_loki_datasource_uid }}"
+            model:
+              editorMode: code
+              expr: 'sum(count_over_time({job="npm-ingress"} | pattern "<_> - <status> <_>" | status=~"401|403" [10m])) > 50'
+              queryType: range
+              legendFormat: "401/403"
+
+      - uid: disk-full-forecast
+        title: Disk predicted full within 30 days
+        condition: A
+        noDataState: OK
+        execErrState: Alerting
+        for: 1h
+        isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          runbook_url: "https://github.com/mindulle/llm-wiki/blob/main/00_System/OPS_OBSERVABILITY_RUNBOOK.md"
+          summary: "{% raw %}{{ $labels.instance }}{% endraw %} 루트 디스크가 30일 내 소진 예상"
+          description: "7일 선형 추세 기준입니다. 로그/이미지/백업 증가 원인을 확인하고 정리 계획을 세우세요."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: "{{ grafana_prometheus_datasource_uid }}"
+            model:
+              editorMode: code
+              expr: 'predict_linear(node_filesystem_avail_bytes{mountpoint="/",fstype=~"ext4|xfs"}[7d], 30*24*3600) < 0'
+              instant: true
+              legendFormat: "{{ '{{' }}instance{{ '}}' }}"
+              range: false
