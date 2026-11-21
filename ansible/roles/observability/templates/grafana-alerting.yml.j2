@@ -27,12 +27,146 @@ groups:
         execErrState: Error
         for: 5m
         isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          summary: "OpenHands 컨테이너에서 에러 로그가 반복 발생"
         data:
           - refId: A
             relativeTimeRange:
               from: 300
               to: 0
-            datasourceUid: loki
+            datasourceUid: "{{ grafana_loki_datasource_uid }}"
             model:
               expr: 'rate({container="openhands"} |= "error" [5m]) > 0 or rate({container="openhands"} |= "exception" [5m]) > 0'
               queryType: range
+
+  - orgId: 1
+    name: Infrastructure
+    folder: Infrastructure
+    interval: 1m
+    rules:
+      - uid: node-exporter-down
+        title: Node exporter down
+        condition: A
+        noDataState: OK
+        execErrState: Alerting
+        for: 5m
+        isPaused: false
+        labels:
+          severity: critical
+        annotations:
+          summary: "{% raw %}{{ $labels.instance }} 의 node_exporter 가 5분 이상 응답 없음{% endraw %}"
+          description: "호스트 자체가 내려갔거나 node_exporter가 죽었습니다. `up{job=\"node_exporter\"} == 0`."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "{{ grafana_prometheus_datasource_uid }}"
+            model:
+              editorMode: code
+              expr: 'up{job="node_exporter"} == 0'
+              instant: true
+              legendFormat: "{{ '{{' }}instance{{ '}}' }}"
+              range: false
+
+      - uid: disk-usage-high
+        title: Disk usage above 85%
+        condition: A
+        noDataState: OK
+        execErrState: Alerting
+        for: 10m
+        isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          summary: "{% raw %}{{ $labels.instance }} 루트 디스크 사용률 85% 초과{% endraw %}"
+          description: "{% raw %}현재 {{ $values.A }}%. safe prune 또는 볼륨 정리가 필요합니다.{% endraw %}"
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "{{ grafana_prometheus_datasource_uid }}"
+            model:
+              editorMode: code
+              expr: '(1 - node_filesystem_avail_bytes{mountpoint="/",fstype=~"ext4|xfs"} / node_filesystem_size_bytes{mountpoint="/",fstype=~"ext4|xfs"}) * 100 > 85'
+              instant: true
+              legendFormat: "{{ '{{' }}instance{{ '}}' }}"
+              range: false
+
+      - uid: tls-cert-expiring
+        title: TLS certificate expires within 14 days
+        condition: A
+        noDataState: OK
+        execErrState: Alerting
+        for: 1h
+        isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          summary: "{% raw %}{{ $labels.target }} TLS 인증서 만료 14일 이내{% endraw %}"
+          description: "{% raw %}blackbox probe 기준 잔여 시간(초): {{ $values.A }}{% endraw %}"
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 3600
+              to: 0
+            datasourceUid: "{{ grafana_prometheus_datasource_uid }}"
+            model:
+              editorMode: code
+              expr: 'probe_ssl_earliest_cert_expiry - time() < 14 * 24 * 3600'
+              instant: true
+              legendFormat: "{{ '{{' }}target{{ '}}' }}"
+              range: false
+
+      - uid: https-probe-failing
+        title: HTTPS endpoint probe failing
+        condition: A
+        noDataState: OK
+        execErrState: Alerting
+        for: 15m
+        isPaused: false
+        labels:
+          severity: critical
+        annotations:
+          summary: "{% raw %}{{ $labels.target }} HTTPS 프로브 15분 이상 실패{% endraw %}"
+          description: "blackbox `http_any` 모듈 기준 2xx/3xx/401/403 이 아닙니다. 502·404·timeout 은 실제 장애로 봅니다."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: "{{ grafana_prometheus_datasource_uid }}"
+            model:
+              editorMode: code
+              expr: 'probe_success{job="blackbox_tls"} == 0'
+              instant: true
+              legendFormat: "{{ '{{' }}target{{ '}}' }}"
+              range: false
+
+      - uid: cloudflared-metrics-down
+        title: Cloudflared metrics target down
+        condition: A
+        noDataState: OK
+        execErrState: Alerting
+        for: 5m
+        isPaused: false
+        labels:
+          severity: critical
+        annotations:
+          summary: "edge-gateway cloudflared 메트릭 5분 이상 수집 불가"
+          description: "터널이 끊겼거나 cloudflared 프로세스가 죽었습니다."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "{{ grafana_prometheus_datasource_uid }}"
+            model:
+              editorMode: code
+              expr: 'up{job="cloudflared"} == 0'
+              instant: true
+              legendFormat: "{{ '{{' }}instance{{ '}}' }}"
+              range: false

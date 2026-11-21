@@ -1,9 +1,12 @@
 # {{ ansible_managed }}
 modules:
+  # 업타임/TLS 프로브 공용 모듈.
+  # 빈 valid_status_codes 는 "2xx 만 성공"이라 로그인 리다이렉트(302)나
+  # S3 루트(403)를 장애로 오판했다. 정상적으로 관측되는 코드를 명시한다.
   http_any:
     prober: http
     timeout: 10s
     http:
-      valid_status_codes: []
+      valid_status_codes: [200, 201, 204, 301, 302, 303, 307, 308, 401, 403]
       preferred_ip_protocol: ip4
-      follow_redirects: false
+      follow_redirects: true
