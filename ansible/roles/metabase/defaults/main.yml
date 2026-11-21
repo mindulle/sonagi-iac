@@ -1,0 +1,12 @@
+---
+metabase_image: "metabase/metabase:v0.63.16.7"
+metabase_port: 3000
+metabase_network: metabase_net
+metabase_db_host: metabase_postgres
+metabase_db_name: metabase
+metabase_db_user: metabase
+metabase_db_port: 5432
+metabase_site_url: "https://bi.sonagi.space"
+metabase_embedding_app_origin: "https://www.notion.so,https://notion.so"
+# metabase_db_password 는 저장소에 두지 않는다.
+# group_vars/vault.yml 이나 `--extra-vars` 로 주입한다.
