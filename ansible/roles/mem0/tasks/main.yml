@@ -1,0 +1,32 @@
+---
+- name: Ensure mem0 docker-compose directory exists
+  file:
+    path: /home/ubuntu/mem0/server
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+
+- name: Deploy mem0 .env file (only if missing)
+  ansible.builtin.template:
+    src: env.example.j2
+    dest: /home/ubuntu/mem0/server/.env
+    owner: ubuntu
+    group: ubuntu
+    mode: "0640"
+    force: false
+    # 비밀값은 저장소에 두지 않는다. 기존 .env 가 있으면 절대 덮어쓰지 않는다.
+
+- name: Deploy mem0 docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: /home/ubuntu/mem0/server/docker-compose.yml
+    owner: ubuntu
+    group: ubuntu
+  notify: Restart mem0 services
+
+- name: Ensure mem0 services are running (Ansible logic)
+  command: docker compose --profile dashboard up -d
+  args:
+    chdir: /home/ubuntu/mem0/server
+  register: compose_output
+  changed_when: "'Created' in compose_output.stdout or 'Started' in compose_output.stdout or 'Recreated' in compose_output.stdout"

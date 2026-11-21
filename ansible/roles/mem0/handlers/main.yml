@@ -1,0 +1,5 @@
+---
+- name: Restart mem0 services
+  command: docker compose --profile dashboard up -d --force-recreate
+  args:
+    chdir: /home/ubuntu/mem0/server

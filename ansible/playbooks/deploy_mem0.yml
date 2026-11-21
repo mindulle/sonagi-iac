@@ -1,0 +1,7 @@
+---
+- name: Deploy Mem0 AI Memory Layer
+  hosts: localhost
+  connection: local
+  become: yes
+  roles:
+    - mem0
