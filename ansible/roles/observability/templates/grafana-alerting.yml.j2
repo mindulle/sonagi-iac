@@ -170,3 +170,103 @@ groups:
               instant: true
               legendFormat: "{{ '{{' }}instance{{ '}}' }}"
               range: false
+
+      - uid: memory-available-low
+        title: Memory available below 10%
+        condition: A
+        noDataState: OK
+        execErrState: Alerting
+        for: 10m
+        isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          summary: "{% raw %}{{ $labels.instance }}{% endraw %} 가용 메모리 10% 미만"
+          description: "OOM 위험. 프로세스 회수 또는 노드 증설이 필요합니다."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "{{ grafana_prometheus_datasource_uid }}"
+            model:
+              editorMode: code
+              expr: '(node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 < 10'
+              instant: true
+              legendFormat: "{{ '{{' }}instance{{ '}}' }}"
+              range: false
+
+      - uid: node-load-high
+        title: Node load per core above 2
+        condition: A
+        noDataState: OK
+        execErrState: Alerting
+        for: 15m
+        isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          summary: "{% raw %}{{ $labels.instance }}{% endraw %} 코어당 load 2 초과"
+          description: "지속 부하. 어떤 프로세스가 CPU를 잡고 있는지 확인하세요."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: "{{ grafana_prometheus_datasource_uid }}"
+            model:
+              editorMode: code
+              expr: 'node_load1 / on(instance) group_left count by (instance) (node_cpu_seconds_total{mode="idle"}) > 2'
+              instant: true
+              legendFormat: "{{ '{{' }}instance{{ '}}' }}"
+              range: false
+
+      - uid: node-exporter-missing
+        title: All node_exporter targets missing
+        condition: A
+        noDataState: OK
+        execErrState: Alerting
+        for: 10m
+        isPaused: false
+        labels:
+          severity: critical
+        annotations:
+          summary: "node_exporter 타깃이 전부 사라짐"
+          description: "Prometheus 설정/scrape가 통째로 깨졌을 가능성이 있습니다. 대시보드가 조용해도 정상이 아닙니다."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "{{ grafana_prometheus_datasource_uid }}"
+            model:
+              editorMode: code
+              expr: 'absent(up{job="node_exporter"})'
+              instant: true
+              legendFormat: "node_exporter"
+              range: false
+
+      - uid: prometheus-reload-failed
+        title: Prometheus config reload failed
+        condition: A
+        noDataState: OK
+        execErrState: Alerting
+        for: 10m
+        isPaused: false
+        labels:
+          severity: warning
+        annotations:
+          summary: "Prometheus 설정 리로드 실패"
+          description: "마지막 설정 적용이 실패했습니다. prometheus.yml 문법과 마운트를 확인하세요."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasourceUid: "{{ grafana_prometheus_datasource_uid }}"
+            model:
+              editorMode: code
+              expr: 'prometheus_config_last_reload_successful == 0'
+              instant: true
+              legendFormat: "prometheus"
+              range: false
